@@ -12,6 +12,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,16 +25,21 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const { signIn, signUp, isGuestMode } = useAuth();
+
+  // 清除错误
+  const clearError = useCallback(() => setErrorMsg(''), []);
 
   // 所有 hooks 必须在 early return 之前调用（React Hooks 规则）
   const handleLogin = useCallback(async () => {
+    clearError();
     if (!email.trim()) {
-      Alert.alert('提示', '请输入邮箱');
+      setErrorMsg('请输入邮箱');
       return;
     }
     if (!password.trim()) {
-      Alert.alert('提示', '请输入密码');
+      setErrorMsg('请输入密码');
       return;
     }
 
@@ -41,32 +47,31 @@ export default function AuthScreen() {
     try {
       const result = await signIn(email.trim(), password);
       if (!result.success) {
-        Alert.alert('登录失败', result.error || '请检查邮箱和密码');
-      } else {
-        Alert.alert('成功', '登录成功');
+        setErrorMsg(result.error || '邮箱或密码错误，请重试');
       }
     } catch (err: any) {
-      Alert.alert('登录失败', err.message || '请检查网络连接');
+      setErrorMsg(err.message || '登录失败，请检查网络');
     } finally {
       setIsLoading(false);
     }
-  }, [email, password, signIn]);
+  }, [email, password, signIn, clearError]);
 
   const handleRegister = useCallback(async () => {
+    clearError();
     if (!email.trim()) {
-      Alert.alert('提示', '请输入邮箱');
+      setErrorMsg('请输入邮箱');
       return;
     }
     if (!password.trim()) {
-      Alert.alert('提示', '请输入密码');
+      setErrorMsg('请输入密码');
       return;
     }
     if (password.length < 6) {
-      Alert.alert('提示', '密码至少6位');
+      setErrorMsg('密码至少6位');
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('提示', '两次密码不一致');
+      setErrorMsg('两次密码不一致');
       return;
     }
 
@@ -74,17 +79,20 @@ export default function AuthScreen() {
     try {
       const result = await signUp(email.trim(), password);
       if (!result.success) {
-        Alert.alert('注册失败', result.error || '请稍后重试');
+        setErrorMsg(result.error || '注册失败，请稍后重试');
       } else {
         Alert.alert('注册成功', '请查收验证邮件，然后登录');
         setIsLogin(true);
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
       }
     } catch (err: any) {
-      Alert.alert('注册失败', err.message || '请稍后重试');
+      setErrorMsg(err.message || '注册失败，请稍后重试');
     } finally {
       setIsLoading(false);
     }
-  }, [email, password, confirmPassword, signUp]);
+  }, [email, password, confirmPassword, signUp, clearError]);
 
   // 游客模式下显示提示信息 — early return 在所有 hooks 之后
   if (isGuestMode) {
@@ -181,6 +189,13 @@ export default function AuthScreen() {
               </View>
             )}
 
+            {errorMsg ? (
+              <View style={styles.errorBox}>
+                <Ionicons name="alert-circle" size={16} color="#EF4444" />
+                <Text style={styles.errorText}>{errorMsg}</Text>
+              </View>
+            ) : null}
+
             <TouchableOpacity
               style={[styles.button, isLoading && styles.buttonDisabled]}
               onPress={isLogin ? handleLogin : handleRegister}
@@ -207,8 +222,8 @@ export default function AuthScreen() {
 
           <Text style={styles.footer}>
             登录即表示同意{' '}
-            <Text style={styles.link}>用户协议</Text> 和{' '}
-            <Text style={styles.link}>隐私政策</Text>
+            <Text style={styles.link} onPress={() => Linking.openURL('https://darinyazanr.github.io/smile-app/terms/')}>用户协议</Text> 和{' '}
+            <Text style={styles.link} onPress={() => Linking.openURL('https://darinyazanr.github.io/smile-app/privacy/')}>隐私政策</Text>
           </Text>
 
           {/* 隐私信任印章 */}
@@ -312,6 +327,22 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.7,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 12,
+    gap: 8,
+  },
+  errorText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#DC2626',
+    lineHeight: 18,
   },
   buttonText: {
     color: '#fff',

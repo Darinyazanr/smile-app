@@ -10,6 +10,29 @@ import React, { createContext, useContext, useEffect, useState, useCallback, Rea
 import { useRouter as useExpoRouter, useSegments } from 'expo-router';
 import { getSupabaseBrowserClientWithRetry } from '@/lib/supabase-browser';
 
+/**
+ * 将 Supabase 英文错误信息映射为中文
+ */
+function translateAuthError(message: string): string {
+  const errorMap: Record<string, string> = {
+    'Invalid login credentials': '邮箱或密码错误，请检查后重试',
+    'invalid login credentials': '邮箱或密码错误，请检查后重试',
+    'Invalid email or password': '邮箱或密码错误，请检查后重试',
+    'Email not confirmed': '邮箱尚未验证，请先查收验证邮件',
+    'email not confirmed': '邮箱尚未验证，请先查收验证邮件',
+    'User already registered': '该邮箱已注册，请直接登录',
+    'user already registered': '该邮箱已注册，请直接登录',
+    'Password should be at least 6 characters': '密码长度不能少于6位',
+    'User not found': '该邮箱未注册，请先创建账号',
+    'user not found': '该邮箱未注册，请先创建账号',
+    'Invalid email': '邮箱格式不正确',
+    'Too many requests': '操作过于频繁，请稍后再试',
+    'Network request failed': '网络连接失败，请检查网络后重试',
+    'Email rate limit exceeded': '发送过于频繁，请稍后再试',
+  };
+  return errorMap[message] || message;
+}
+
 interface User {
   id: string;
   email?: string;
@@ -151,7 +174,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: translateAuthError(error.message) };
       }
 
       setUser(data.user as User);
@@ -174,7 +197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       });
 
       if (error) {
-        return { success: false, error: error.message };
+        return { success: false, error: translateAuthError(error.message) };
       }
 
       return { success: true };
