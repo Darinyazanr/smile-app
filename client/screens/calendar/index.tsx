@@ -9,10 +9,10 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Modal,
   Image,
 } from 'react-native';
 import { Screen } from '@/components/Screen';
+import { BottomSheet } from '@/components/BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
@@ -296,84 +296,60 @@ export default function CalendarScreen() {
         </View>
 
         {/* 详情弹窗 */}
-        <Modal
+        <BottomSheet
           visible={detailModalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setDetailModalVisible(false)}
+          onClose={() => setDetailModalVisible(false)}
         >
-          <TouchableOpacity
-            style={styles.modalBackdrop}
-            activeOpacity={1}
-            onPress={() => setDetailModalVisible(false)}
-          />
-          <View style={[styles.detailModal, { paddingBottom: insets.bottom + 20 }]}>
-            <View style={styles.detailHandle} />
-            
+          <BottomSheet.Header onClose={() => setDetailModalVisible(false)}>
+            <BottomSheet.Title>
+              {dayjs(selectedDate).format('YYYY年MM月DD日')}
+            </BottomSheet.Title>
+          </BottomSheet.Header>
+
+          <BottomSheet.Body>
             {selectedRecord ? (
               <>
-                <View style={styles.detailHeader}>
-                  <Text style={styles.detailDate}>
-                    {dayjs(selectedDate).format('YYYY年MM月DD日')}
+                <View style={styles.detailMood}>
+                  <MoodEmoji type={selectedRecord.smiled ? 'smiled' : 'notSmiled'} style={styles.detailEmoji} />
+                  <Text style={styles.detailMoodText}>
+                    {selectedRecord.smiled ? '今天笑了' : '今天没笑'}
                   </Text>
-                  <TouchableOpacity onPress={() => setDetailModalVisible(false)}>
-                    <Ionicons name="close" size={24} color="#64748B" />
-                  </TouchableOpacity>
                 </View>
 
-                <View style={styles.detailContent}>
-                  <View style={styles.detailMood}>
-                    <MoodEmoji type={selectedRecord.smiled ? 'smiled' : 'notSmiled'} style={styles.detailEmoji} />
-                    <Text style={styles.detailMoodText}>
-                      {selectedRecord.smiled ? '今天笑了' : '今天没笑'}
-                    </Text>
+                {selectedRecord.reason && (
+                  <View style={styles.detailSection}>
+                    <Text style={styles.detailLabel}>记录原因</Text>
+                    <Text style={styles.detailText}>{selectedRecord.reason}</Text>
                   </View>
+                )}
 
-                  {selectedRecord.reason && (
-                    <View style={styles.detailSection}>
-                      <Text style={styles.detailLabel}>记录原因</Text>
-                      <Text style={styles.detailText}>{selectedRecord.reason}</Text>
-                    </View>
-                  )}
-
-                  {selectedRecord.photoPath && (
-                    <View style={styles.detailSection}>
-                      <Text style={styles.detailLabel}>记录照片</Text>
-                      <Image 
-                        source={{ uri: selectedRecord.photoPath }} 
-                        style={styles.detailPhoto}
-                        resizeMode="cover"
-                      />
-                    </View>
-                  )}
-                </View>
+                {selectedRecord.photoPath && (
+                  <View style={styles.detailSection}>
+                    <Text style={styles.detailLabel}>记录照片</Text>
+                    <Image 
+                      source={{ uri: selectedRecord.photoPath }} 
+                      style={styles.detailPhoto}
+                      resizeMode="cover"
+                    />
+                  </View>
+                )}
               </>
             ) : (
-              <>
-                <View style={styles.detailHeader}>
-                  <Text style={styles.detailDate}>
-                    {dayjs(selectedDate).format('YYYY年MM月DD日')}
-                  </Text>
-                  <TouchableOpacity onPress={() => setDetailModalVisible(false)}>
-                    <Ionicons name="close" size={24} color="#64748B" />
+              <View style={styles.noRecordContainer}>
+                <Text style={styles.noRecordText}>当天没有打卡记录</Text>
+                <Link 
+                  href="/" 
+                  asChild
+                  onPress={() => setDetailModalVisible(false)}
+                >
+                  <TouchableOpacity style={styles.goCheckInButton}>
+                    <Text style={styles.goCheckInText}>去打卡</Text>
                   </TouchableOpacity>
-                </View>
-                <View style={styles.noRecordContainer}>
-                  <Text style={styles.noRecordText}>当天没有打卡记录</Text>
-                  <Link 
-                    href="/" 
-                    asChild
-                    onPress={() => setDetailModalVisible(false)}
-                  >
-                    <TouchableOpacity style={styles.goCheckInButton}>
-                      <Text style={styles.goCheckInText}>去打卡</Text>
-                    </TouchableOpacity>
-                  </Link>
-                </View>
-              </>
+                </Link>
+              </View>
             )}
-          </View>
-        </Modal>
+          </BottomSheet.Body>
+        </BottomSheet>
       </View>
     </Screen>
   );
@@ -512,43 +488,7 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: '#E5E7EB',
   },
-  // Modal 样式
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  detailModal: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    minHeight: 300,
-  },
-  detailHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 12,
-  },
-  detailHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  detailDate: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  detailContent: {
-    padding: 20,
-  },
+  // 详情内容样式
   detailMood: {
     flexDirection: 'row',
     alignItems: 'center',

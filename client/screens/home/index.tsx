@@ -8,15 +8,13 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Modal,
   TextInput,
   ScrollView,
   Image,
-  Platform,
-  KeyboardAvoidingView,
   Alert,
 } from 'react-native';
 import { Screen } from '@/components/Screen';
+import { BottomSheet } from '@/components/BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { Link } from 'expo-router';
@@ -212,94 +210,80 @@ export default function HomeScreen() {
           </Link>
         </View>
 
-        {/* Reason Input Modal */}
-        <Modal
+        {/* 打卡录入弹窗 */}
+        <BottomSheet
           visible={modalVisible}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={handleCancel}
+          onClose={handleCancel}
         >
-          <KeyboardAvoidingView
-            style={styles.modalContainer}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-            <TouchableOpacity
-              style={styles.modalBackdrop}
-              activeOpacity={1}
-              onPress={handleCancel}
-            />
-            <View style={[styles.modalContent, { paddingBottom: insets.bottom + 20 }]}>
-              <View style={styles.modalHandle} />
-              
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  {selectedMood ? (selectedMood ? <MoodEmoji type="smiled" /> : <MoodEmoji type="notSmiled" />) : ''}
-                  {selectedMood ? (selectedMood ? '记录今日微笑' : '记录今天') : ''}
-                </Text>
-                <TouchableOpacity onPress={handleCancel} style={styles.closeButton}>
-                  <Ionicons name="close" size={24} color="#64748B" />
-                </TouchableOpacity>
+          <BottomSheet.Header onClose={handleCancel}>
+            <BottomSheet.Title>
+              {selectedMood ? (
+                <>
+                  <MoodEmoji type={selectedMood ? 'smiled' : 'notSmiled'} />{' '}
+                  {selectedMood ? '记录今日微笑' : '记录今天'}
+                </>
+              ) : ''}
+            </BottomSheet.Title>
+          </BottomSheet.Header>
+
+          <BottomSheet.Body>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* 原因输入 */}
+              <View style={styles.inputSection}>
+                <Text style={styles.inputLabel}>简短描述（可选）</Text>
+                <TextInput
+                  style={styles.reasonInput}
+                  placeholder="今天为什么笑/没笑..."
+                  placeholderTextColor="#94A3B8"
+                  value={reason}
+                  onChangeText={setReason}
+                  maxLength={100}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                />
               </View>
 
-              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-                {/* 原因输入 */}
-                <View style={styles.inputSection}>
-                  <Text style={styles.inputLabel}>简短描述（可选）</Text>
-                  <TextInput
-                    style={styles.reasonInput}
-                    placeholder="今天为什么笑/没笑..."
-                    placeholderTextColor="#94A3B8"
-                    value={reason}
-                    onChangeText={setReason}
-                    maxLength={100}
-                    multiline
-                    numberOfLines={3}
-                    textAlignVertical="top"
-                  />
+              {/* 照片上传 */}
+              <View style={styles.inputSection}>
+                <Text style={styles.inputLabel}>添加照片（可选）</Text>
+                <View style={styles.photoButtons}>
+                  <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
+                    <Ionicons name="images-outline" size={24} color="#64748B" />
+                    <Text style={styles.photoButtonText}>相册</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto}>
+                    <Ionicons name="camera-outline" size={24} color="#64748B" />
+                    <Text style={styles.photoButtonText}>拍照</Text>
+                  </TouchableOpacity>
                 </View>
-
-                {/* 照片上传 */}
-                <View style={styles.inputSection}>
-                  <Text style={styles.inputLabel}>添加照片（可选）</Text>
-                  <View style={styles.photoButtons}>
-                    <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
-                      <Ionicons name="images-outline" size={24} color="#64748B" />
-                      <Text style={styles.photoButtonText}>相册</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto}>
-                      <Ionicons name="camera-outline" size={24} color="#64748B" />
-                      <Text style={styles.photoButtonText}>拍照</Text>
+                {photoUri && (
+                  <View style={styles.photoPreview}>
+                    <Image source={{ uri: photoUri }} style={styles.photoImage} />
+                    <TouchableOpacity
+                      style={styles.removePhoto}
+                      onPress={() => setPhotoUri(null)}
+                    >
+                      <Ionicons name="close-circle" size={24} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
-                  {photoUri && (
-                    <View style={styles.photoPreview}>
-                      <Image source={{ uri: photoUri }} style={styles.photoImage} />
-                      <TouchableOpacity
-                        style={styles.removePhoto}
-                        onPress={() => setPhotoUri(null)}
-                      >
-                        <Ionicons name="close-circle" size={24} color="#EF4444" />
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              </ScrollView>
-
-              {/* 提交按钮 */}
-              <View style={styles.modalFooter}>
-                <TouchableOpacity
-                  style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-                  onPress={handleSubmit}
-                  disabled={isSubmitting}
-                >
-                  <Text style={styles.submitButtonText}>
-                    {isSubmitting ? '保存中...' : '保存记录'}
-                  </Text>
-                </TouchableOpacity>
+                )}
               </View>
-            </View>
-          </KeyboardAvoidingView>
-        </Modal>
+            </ScrollView>
+          </BottomSheet.Body>
+
+          <BottomSheet.Footer>
+            <TouchableOpacity
+              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={isSubmitting}
+            >
+              <Text style={styles.submitButtonText}>
+                {isSubmitting ? '保存中...' : '保存记录'}
+              </Text>
+            </TouchableOpacity>
+          </BottomSheet.Footer>
+        </BottomSheet>
       </View>
     </Screen>
   );
@@ -474,51 +458,7 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginTop: 4,
   },
-  // Modal 样式
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
-    maxHeight: '80%',
-  },
-  modalHandle: {
-    width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 12,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalBody: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
+  // Modal 内容样式
   inputSection: {
     marginBottom: 24,
   },
@@ -573,12 +513,6 @@ const styles = StyleSheet.create({
     right: -8,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-  },
-  modalFooter: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
   },
   submitButton: {
     backgroundColor: '#F59E0B',
