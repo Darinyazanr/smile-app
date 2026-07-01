@@ -74,11 +74,9 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzd
 ### 我们的承诺
 
 - ❌ 不收集隐私
-- ❌ 不含广告
 - ❌ 不做社交
 - ✅ 极简至上
-- ✅ 数据加密
-- ✅ 永久免费
+- ✅ 数据只存本地
 
 ---
 
