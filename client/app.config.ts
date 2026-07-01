@@ -2,8 +2,8 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 const APP_NAME = '今日微笑';
 const BUNDLE_ID = 'com.smileapp.today';
-const VERSION = '1.2.0';
-const BUILD_NUMBER = '3';
+const VERSION = '1.0.0';
+const BUILD_NUMBER = '1';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   return {
