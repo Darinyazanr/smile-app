@@ -210,8 +210,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [isGuestMode]);
 
   const signOut = useCallback(async () => {
+    // 清除游客状态
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('smile_guest_mode');
+    }
+    
     if (isGuestMode) {
-      // 游客模式：清除状态并跳回登录页
       setIsGuestMode(false);
       setUser(null);
       routerReplace('/auth');
@@ -235,6 +239,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       email: '游客',
     });
     setIsLoading(false);
+    // 持久化游客状态到 localStorage，避免刷新/导航后丢失
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('smile_guest_mode', '1');
+    }
+  }, []);
+
+  // 初始化时检查 localStorage 中的游客状态
+  useEffect(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('smile_guest_mode') === '1') {
+      setIsGuestMode(true);
+      setUser({
+        id: 'guest_persist',
+        email: '游客',
+      });
+      setIsLoading(false);
+      setSupabaseAvailable(false);
+    }
   }, []);
 
   return (
