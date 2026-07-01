@@ -14,7 +14,7 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<你的 Supabase anon key>
 
 | 字段 | 内容 |
 |---|---|
-| App 名称 | 笑了么 |
+| App 名称 | 今日微笑 |
 | 副标题 | 极简记录，今天你笑了吗？ |
 | Bundle ID | com.smileapp.today |
 | 类别 | 主：生活，副：健康健美 |
