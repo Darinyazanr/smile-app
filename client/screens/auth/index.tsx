@@ -23,7 +23,35 @@ export default function AuthScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isGuestMode } = useAuth();
+
+  // 游客模式下显示提示信息
+  if (isGuestMode) {
+    return (
+      <Screen style={styles.container}>
+        <View style={styles.guestContainer}>
+          <Text style={styles.guestEmoji}>😊</Text>
+          <Text style={styles.guestTitle}>今日微笑</Text>
+          <Text style={styles.guestSubtitle}>离线模式 · 无需登录</Text>
+          <Text style={styles.guestDesc}>
+            当前为本地预览环境，您的打卡记录将保存在设备本地。{'\n'}
+            配置 Supabase 后可启用云同步功能。
+          </Text>
+          <TouchableOpacity
+            style={styles.guestButton}
+            onPress={() => {
+              // 路由守卫会自动跳转
+              if (typeof window !== 'undefined') {
+                window.location.href = '/';
+              }
+            }}
+          >
+            <Text style={styles.guestButtonText}>开始使用</Text>
+          </TouchableOpacity>
+        </View>
+      </Screen>
+    );
+  }
 
   const handleLogin = useCallback(async () => {
     if (!email.trim()) {
@@ -294,5 +322,46 @@ const styles = StyleSheet.create({
   },
   link: {
     color: '#FFB800',
+  },
+  // 游客模式样式
+  guestContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  guestEmoji: {
+    fontSize: 72,
+    marginBottom: 16,
+  },
+  guestTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFB800',
+    marginBottom: 8,
+  },
+  guestSubtitle: {
+    fontSize: 16,
+    color: '#22C55E',
+    fontWeight: '600',
+    marginBottom: 20,
+  },
+  guestDesc: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  guestButton: {
+    backgroundColor: '#FFB800',
+    paddingHorizontal: 48,
+    paddingVertical: 16,
+    borderRadius: 16,
+  },
+  guestButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '600',
   },
 });

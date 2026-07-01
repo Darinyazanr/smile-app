@@ -1,3 +1,11 @@
+/**
+ * AuthContext - 认证状态管理
+ *
+ * 三种模式：
+ * 1. 正常模式：Supabase 可用，完整登录/注册流程
+ * 2. 游客模式：Supabase 不可用（开发/预览环境），自动以游客身份进入首页
+ * 3. 加载中：等待 Supabase 配置
+ */
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useRouter as useExpoRouter, useSegments } from 'expo-router';
 import { getSupabaseBrowserClientWithRetry } from '@/lib/supabase-browser';
@@ -16,6 +24,8 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  /** 是否为游客模式（Supabase 不可用时的降级） */
+  isGuestMode: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
@@ -25,6 +35,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
   isAuthenticated: false,
+  isGuestMode: false,
   signIn: async () => ({ success: false }),
   signUp: async () => ({ success: false }),
   signOut: async () => {},
@@ -41,60 +52,97 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [supabaseAvailable, setSupabaseAvailable] = useState<boolean | null>(null);
   const segments = useSegments();
   
-  // 使用 useSafeRouter hook
   const { push: routerPush, replace: routerReplace } = useExpoRouter() as any;
 
-  // 初始化检查登录状态
+  // 初始化：检测 Supabase 是否可用
   useEffect(() => {
+    let cancelled = false;
+
     const initAuth = async () => {
       try {
-        const supabase = await getSupabaseBrowserClientWithRetry();
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user as User | null);
+        const supabase = await getSupabaseBrowserClientWithRetry(3, 2000);
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        
+        if (!cancelled) {
+          setUser(currentUser as User | null);
+          setSupabaseAvailable(true);
+        }
       } catch (error) {
-        console.error('Failed to get user:', error);
-        setUser(null);
+        console.warn('[Auth] Supabase 不可用，进入游客模式:', (error as Error).message);
+        if (!cancelled) {
+          setSupabaseAvailable(false);
+          setIsGuestMode(true);
+          // 创建游客用户
+          setUser({
+            id: 'guest_' + Date.now(),
+            email: '游客',
+          });
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     initAuth();
 
-    // 监听登录状态变化
-    const initAndListen = async () => {
-      const supabase = await getSupabaseBrowserClientWithRetry();
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          console.log('Auth state changed:', event, session?.user?.email);
-          setUser(session?.user as User | null);
-        }
-      );
-
-      return () => subscription.unsubscribe();
+    // 仅当 Supabase 可用时才监听状态变化
+    let unsubscribe: (() => void) | undefined;
+    const initListener = async () => {
+      try {
+        const supabase = await getSupabaseBrowserClientWithRetry(3, 2000);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (_event, session) => {
+            if (!cancelled) {
+              setUser(session?.user as User | null);
+            }
+          }
+        );
+        unsubscribe = () => subscription.unsubscribe();
+      } catch {
+        // Supabase 不可用，无需监听
+      }
     };
+    initListener();
 
-    initAndListen();
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
   }, []);
 
   // 路由守卫
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || supabaseAvailable === null) return;
 
     const inAuthRoute = segments[0] === 'auth';
     
+    if (isGuestMode) {
+      // 游客模式：如果在登录页，自动跳转到首页
+      if (inAuthRoute) {
+        routerReplace('/');
+      }
+      return;
+    }
+
+    // 正常模式路由守卫
     if (!user && !inAuthRoute) {
-      // 未登录，跳转到登录页
       routerReplace('/auth');
     } else if (user && inAuthRoute) {
-      // 已登录，在登录页，跳转到首页
       routerReplace('/');
     }
-  }, [user, isLoading, segments, routerReplace]);
+  }, [user, isLoading, segments, routerReplace, isGuestMode, supabaseAvailable]);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    if (isGuestMode) {
+      return { success: false, error: '当前为离线模式，无需登录即可使用。' };
+    }
+
     try {
       const supabase = await getSupabaseBrowserClientWithRetry();
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -106,15 +154,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: error.message };
       }
 
-      // 手动更新状态，确保同步
       setUser(data.user as User);
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message };
+      return { success: false, error: error.message || '登录服务暂不可用' };
     }
-  }, []);
+  }, [isGuestMode]);
 
   const signUp = useCallback(async (email: string, password: string) => {
+    if (isGuestMode) {
+      return { success: false, error: '当前为离线模式，无需注册即可使用。' };
+    }
+
     try {
       const supabase = await getSupabaseBrowserClientWithRetry();
       const { data, error } = await supabase.auth.signUp({
@@ -126,14 +177,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { success: false, error: error.message };
       }
 
-      // 注册成功但需要邮箱验证，不自动登录
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: error.message };
+      return { success: false, error: error.message || '注册服务暂不可用' };
     }
-  }, []);
+  }, [isGuestMode]);
 
   const signOut = useCallback(async () => {
+    if (isGuestMode) {
+      // 游客模式不需要登出
+      return;
+    }
+
     try {
       const supabase = await getSupabaseBrowserClientWithRetry();
       await supabase.auth.signOut();
@@ -142,7 +197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch (error) {
       console.error('Sign out error:', error);
     }
-  }, [routerReplace]);
+  }, [routerReplace, isGuestMode]);
 
   return (
     <AuthContext.Provider
@@ -150,6 +205,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user,
         isLoading,
         isAuthenticated: !!user,
+        isGuestMode,
         signIn,
         signUp,
         signOut,
