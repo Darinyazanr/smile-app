@@ -22,6 +22,7 @@ export default function RootLayout() {
           headerShown: false
         }}
       >
+        <Stack.Screen name="auth/index" options={{ title: "" }} />
         <Stack.Screen name="index" options={{ title: "" }} />
         <Stack.Screen name="calendar" options={{ title: "" }} />
         <Stack.Screen name="stats" options={{ title: "" }} />

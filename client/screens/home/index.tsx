@@ -25,10 +25,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { MoodEmoji } from '@/components/Emoji';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { ErrorScreen } from '@/components/ErrorScreen';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { todayRecord, streak, totalDays, saveRecord, isLoading, error, refreshData } = useSmile();
+  const { isLoading: authLoading, isAuthenticated, isGuestMode } = useAuth();
   
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMood, setSelectedMood] = useState<boolean | null>(null);
@@ -113,8 +115,14 @@ export default function HomeScreen() {
   const isCheckedIn = !!todayRecord;
 
   // 加载态 — early return 在所有 hooks 之后
-  if (isLoading) {
+  // authLoading: 等待认证初始化完成
+  if (authLoading || isLoading) {
     return <LoadingScreen message="正在加载今日微笑..." />;
+  }
+
+  // 未认证且非游客 → 不渲染，等待路由守卫跳转
+  if (!isAuthenticated && !isGuestMode) {
+    return <LoadingScreen message="" />;
   }
 
   // 错误态 — early return 在所有 hooks 之后

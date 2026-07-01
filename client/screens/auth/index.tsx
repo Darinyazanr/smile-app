@@ -26,7 +26,7 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const { signIn, signUp, isGuestMode } = useAuth();
+  const { signIn, signUp, isGuestMode, enterGuestMode } = useAuth();
 
   // 清除错误
   const clearError = useCallback(() => setErrorMsg(''), []);
@@ -218,6 +218,14 @@ export default function AuthScreen() {
                 {isLogin ? '还没有账号？立即注册' : '已有账号？立即登录'}
               </Text>
             </TouchableOpacity>
+
+            {/* 游客模式 - 纯文字链接 */}
+            <TouchableOpacity
+              onPress={enterGuestMode}
+              style={styles.guestLink}
+            >
+              <Text style={styles.guestLinkText}>跳过登录，直接体验</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.footer}>
@@ -356,6 +364,16 @@ const styles = StyleSheet.create({
   switchText: {
     color: '#FFB800',
     fontSize: 14,
+  },
+  guestLink: {
+    marginTop: 24,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  guestLinkText: {
+    color: '#94A3B8',
+    fontSize: 13,
+    textDecorationLine: 'underline',
   },
   footer: {
     textAlign: 'center',

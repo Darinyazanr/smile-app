@@ -47,11 +47,13 @@ interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  /** 是否为游客模式（Supabase 不可用时的降级） */
+  /** 是否为游客模式（Supabase 不可用时的降级 或 用户手动选择） */
   isGuestMode: boolean;
   signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
+  /** 手动进入游客模式 */
+  enterGuestMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -62,6 +64,7 @@ const AuthContext = createContext<AuthContextType>({
   signIn: async () => ({ success: false }),
   signUp: async () => ({ success: false }),
   signOut: async () => {},
+  enterGuestMode: () => {},
 });
 
 export function useAuth() {
@@ -208,7 +211,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = useCallback(async () => {
     if (isGuestMode) {
-      // 游客模式不需要登出
+      // 游客模式：清除状态并跳回登录页
+      setIsGuestMode(false);
+      setUser(null);
+      routerReplace('/auth');
       return;
     }
 
@@ -222,6 +228,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [routerReplace, isGuestMode]);
 
+  const enterGuestMode = useCallback(() => {
+    setIsGuestMode(true);
+    setUser({
+      id: 'guest_' + Date.now(),
+      email: '游客',
+    });
+    setIsLoading(false);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
@@ -232,6 +247,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         signIn,
         signUp,
         signOut,
+        enterGuestMode,
       }}
     >
       {children}
