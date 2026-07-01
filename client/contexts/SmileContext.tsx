@@ -14,8 +14,9 @@ interface SmileContextType {
   totalDays: number;
   notificationSettings: NotificationSettings;
   
-  // 加载状态
+  // 状态
   isLoading: boolean;
+  error: string | null;
   
   // 操作方法
   saveRecord: (smiled: boolean, reason?: string, photoUri?: string) => Promise<void>;
@@ -32,6 +33,7 @@ interface SmileProviderProps {
 
 export function SmileProvider({ children }: SmileProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [todayRecord, setTodayRecord] = useState<SmileRecord | undefined>();
   const [allRecords, setAllRecords] = useState<SmileRecord[]>([]);
   const [streak, setStreak] = useState(0);
@@ -74,6 +76,7 @@ export function SmileProvider({ children }: SmileProviderProps) {
         refreshData();
       } catch (error) {
         console.error('Init error:', error);
+        setError(error instanceof Error ? error.message : '初始化失败');
       } finally {
         setIsLoading(false);
       }
@@ -128,6 +131,7 @@ export function SmileProvider({ children }: SmileProviderProps) {
     totalDays,
     notificationSettings,
     isLoading,
+    error,
     saveRecord,
     deleteRecord,
     updateNotificationSettings,

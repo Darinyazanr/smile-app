@@ -22,10 +22,12 @@ import { useSmile } from '@/contexts/SmileContext';
 import dayjs from 'dayjs';
 import { Ionicons } from '@expo/vector-icons';
 import { MoodEmoji } from '@/components/Emoji';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { ErrorScreen } from '@/components/ErrorScreen';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
-  const { todayRecord, streak, totalDays, saveRecord, isLoading } = useSmile();
+  const { todayRecord, streak, totalDays, saveRecord, isLoading, error, refreshData } = useSmile();
   
   // 状态
   const [modalVisible, setModalVisible] = useState(false);
@@ -33,6 +35,16 @@ export default function HomeScreen() {
   const [reason, setReason] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 加载态
+  if (isLoading) {
+    return <LoadingScreen message="正在加载今日微笑..." />;
+  }
+
+  // 错误态
+  if (error) {
+    return <ErrorScreen message={error} onRetry={refreshData} />;
+  }
 
   // 打开录入浮层
   const handleMoodSelect = useCallback((smiled: boolean) => {
