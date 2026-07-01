@@ -32,6 +32,8 @@ export default function SettingsScreen() {
   const [tempTime, setTempTime] = useState(new Date());
   // 关于弹窗
   const [showAbout, setShowAbout] = useState(false);
+  // 隐私安全弹窗
+  const [showPrivacy, setShowPrivacy] = useState(false);
 
   // 切换通知开关
   const handleNotificationToggle = useCallback(async (value: boolean) => {
@@ -179,6 +181,14 @@ export default function SettingsScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>其他</Text>
             <View style={styles.settingCard}>
+              <TouchableOpacity style={styles.settingItem} onPress={() => setShowPrivacy(true)}>
+                <View style={styles.settingLeft}>
+                  <Ionicons name="shield-checkmark-outline" size={22} color="#22C55E" />
+                  <Text style={styles.settingText}>隐私与安全</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+              </TouchableOpacity>
+              <View style={styles.settingDivider} />
               <TouchableOpacity style={styles.settingItem} onPress={handleAbout}>
                 <View style={styles.settingLeft}>
                   <Ionicons name="information-circle-outline" size={22} color="#64748B" />
@@ -292,6 +302,15 @@ export default function SettingsScreen() {
               </View>
             </View>
 
+            {/* 隐私承诺 */}
+            <Text style={styles.aboutSectionLabel}>隐私承诺</Text>
+            <View style={styles.aboutPrivacyNote}>
+              <Ionicons name="shield-checkmark" size={18} color="#22C55E" style={{ marginTop: 1 }} />
+              <Text style={styles.aboutPrivacyText}>
+                你的所有打卡数据仅存储在本地设备中，我们不会收集、上传或分享任何个人信息。卸载即彻底删除。
+              </Text>
+            </View>
+
             {/* 版本信息 */}
             <View style={styles.aboutDivider} />
             <View style={styles.aboutMetaRow}>
@@ -311,6 +330,104 @@ export default function SettingsScreen() {
             <View style={styles.aboutClosing}>
               <Text style={styles.aboutClosingText}>
                 愿你每天都有一万个理由微笑 {SMILE}
+              </Text>
+            </View>
+          </BottomSheet.Body>
+        </BottomSheet>
+
+        {/* 隐私安全弹窗 */}
+        <BottomSheet visible={showPrivacy} onClose={() => setShowPrivacy(false)}>
+          <BottomSheet.Header onClose={() => setShowPrivacy(false)}>
+            <BottomSheet.Title>
+              <Ionicons name="shield-checkmark" size={22} color="#22C55E" /> 隐私与安全
+            </BottomSheet.Title>
+          </BottomSheet.Header>
+          <BottomSheet.Body>
+            {/* 核心承诺 */}
+            <View style={styles.privacyHero}>
+              <View style={styles.privacyHeroIcon}>
+                <Ionicons name="lock-closed" size={32} color="#22C55E" />
+              </View>
+              <Text style={styles.privacyHeroTitle}>你的数据，只属于你</Text>
+              <Text style={styles.privacyHeroDesc}>
+                我们设计「今日微笑」的核心理念是：你记录的情绪是私密的，应该永远留在你自己的设备上。
+              </Text>
+            </View>
+
+            <View style={styles.aboutDivider} />
+
+            {/* 隐私清单 */}
+            <Text style={styles.aboutSectionLabel}>我们不做的</Text>
+            <View style={styles.privacyList}>
+              <View style={styles.privacyItem}>
+                <View style={styles.privacyItemIcon}>
+                  <Ionicons name="close-circle" size={18} color="#EF4444" />
+                </View>
+                <View style={styles.privacyItemText}>
+                  <Text style={styles.privacyItemTitle}>不收集打卡数据</Text>
+                  <Text style={styles.privacyItemDesc}>你的微笑记录、心情原因、照片全部存在手机本地，我们无法访问</Text>
+                </View>
+              </View>
+              <View style={styles.privacyItem}>
+                <View style={styles.privacyItemIcon}>
+                  <Ionicons name="close-circle" size={18} color="#EF4444" />
+                </View>
+                <View style={styles.privacyItemText}>
+                  <Text style={styles.privacyItemTitle}>不使用分析工具</Text>
+                  <Text style={styles.privacyItemDesc}>没有任何埋点 SDK、统计工具或用户行为追踪代码</Text>
+                </View>
+              </View>
+              <View style={styles.privacyItem}>
+                <View style={styles.privacyItemIcon}>
+                  <Ionicons name="close-circle" size={18} color="#EF4444" />
+                </View>
+                <View style={styles.privacyItemText}>
+                  <Text style={styles.privacyItemTitle}>不出售任何数据</Text>
+                  <Text style={styles.privacyItemDesc}>我们没有广告、没有第三方 SDK、没有任何商业数据变现</Text>
+                </View>
+              </View>
+              <View style={styles.privacyItem}>
+                <View style={styles.privacyItemIcon}>
+                  <Ionicons name="close-circle" size={18} color="#EF4444" />
+                </View>
+                <View style={styles.privacyItemText}>
+                  <Text style={styles.privacyItemTitle}>不追踪位置</Text>
+                  <Text style={styles.privacyItemDesc}>我们不会请求或收集你的 GPS 位置信息</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.aboutDivider} />
+
+            {/* 数据说明 */}
+            <Text style={styles.aboutSectionLabel}>数据存储说明</Text>
+            <View style={styles.privacyDataCard}>
+              <View style={styles.privacyDataRow}>
+                <View style={styles.privacyDataDot} />
+                <Text style={styles.privacyDataLabel}>打卡记录</Text>
+                <Text style={styles.privacyDataValue}>仅本地 AsyncStorage</Text>
+              </View>
+              <View style={styles.privacyDataRow}>
+                <View style={[styles.privacyDataDot, styles.privacyDataDotCloud]} />
+                <Text style={styles.privacyDataLabel}>账号邮箱</Text>
+                <Text style={styles.privacyDataValue}>Supabase Auth（仅认证）</Text>
+              </View>
+              <View style={styles.privacyDataRow}>
+                <View style={[styles.privacyDataDot, styles.privacyDataDotLocal]} />
+                <Text style={styles.privacyDataLabel}>通知设置</Text>
+                <Text style={styles.privacyDataValue}>仅本地存储</Text>
+              </View>
+              <View style={styles.privacyDataRow}>
+                <View style={styles.privacyDataDot} />
+                <Text style={styles.privacyDataLabel}>照片</Text>
+                <Text style={styles.privacyDataValue}>仅本地文件系统</Text>
+              </View>
+            </View>
+
+            {/* 一句话总结 */}
+            <View style={styles.privacyFooter}>
+              <Text style={styles.privacyFooterText}>
+                卸载 App 即彻底清除所有数据。{'\n'}你拥有对自己数据的完全控制权。
               </Text>
             </View>
           </BottomSheet.Body>
@@ -591,6 +708,21 @@ const styles = StyleSheet.create({
     color: '#475569',
     fontWeight: '500',
   },
+  aboutPrivacyNote: {
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 4,
+  },
+  aboutPrivacyText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#166534',
+    lineHeight: 19,
+    fontWeight: '500',
+  },
   aboutClosing: {
     marginTop: 20,
     paddingVertical: 16,
@@ -603,5 +735,106 @@ const styles = StyleSheet.create({
     color: '#92400E',
     fontWeight: '500',
     lineHeight: 20,
+  },
+  // 隐私安全弹窗样式
+  privacyHero: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  privacyHeroIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#F0FDF4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+    borderWidth: 2,
+    borderColor: '#DCFCE7',
+  },
+  privacyHeroTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  privacyHeroDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 20,
+    paddingHorizontal: 10,
+  },
+  privacyList: {
+    gap: 12,
+  },
+  privacyItem: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  privacyItemIcon: {
+    marginTop: 2,
+  },
+  privacyItemText: {
+    flex: 1,
+  },
+  privacyItemTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  privacyItemDesc: {
+    fontSize: 12,
+    color: '#94A3B8',
+    lineHeight: 17,
+  },
+  privacyDataCard: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 14,
+    gap: 10,
+  },
+  privacyDataRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  privacyDataDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#22C55E',
+  },
+  privacyDataDotCloud: {
+    backgroundColor: '#F59E0B',
+  },
+  privacyDataDotLocal: {
+    backgroundColor: '#22C55E',
+  },
+  privacyDataLabel: {
+    fontSize: 13,
+    color: '#374151',
+    flex: 1,
+  },
+  privacyDataValue: {
+    fontSize: 12,
+    color: '#94A3B8',
+    fontWeight: '500',
+  },
+  privacyFooter: {
+    marginTop: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  privacyFooterText: {
+    fontSize: 12,
+    color: '#166534',
+    textAlign: 'center',
+    lineHeight: 18,
+    fontWeight: '500',
   },
 });

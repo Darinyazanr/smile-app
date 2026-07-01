@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { Screen } from '@/components/Screen';
 import { useAuth } from '@/contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
@@ -209,6 +210,16 @@ export default function AuthScreen() {
             <Text style={styles.link}>用户协议</Text> 和{' '}
             <Text style={styles.link}>隐私政策</Text>
           </Text>
+
+          {/* 隐私信任印章 */}
+          <View style={styles.privacySeal}>
+            <View style={styles.privacySealIcon}>
+              <Ionicons name="shield-checkmark" size={16} color="#22C55E" />
+            </View>
+            <Text style={styles.privacySealText}>
+              你的数据仅存本地 · 永不收集 · 永不分享
+            </Text>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
@@ -323,6 +334,33 @@ const styles = StyleSheet.create({
   },
   link: {
     color: '#FFB800',
+  },
+  // 隐私信任印章
+  privacySeal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#F0FDF4',
+    borderRadius: 20,
+    alignSelf: 'center',
+    gap: 6,
+  },
+  privacySealIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#DCFCE7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  privacySealText: {
+    fontSize: 11,
+    color: '#166534',
+    fontWeight: '500',
+    letterSpacing: 0.3,
   },
   // 游客模式样式
   guestContainer: {
