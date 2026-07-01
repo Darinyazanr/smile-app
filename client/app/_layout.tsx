@@ -24,6 +24,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ title: "" }} />
         <Stack.Screen name="calendar" options={{ title: "" }} />
+        <Stack.Screen name="stats" options={{ title: "" }} />
         <Stack.Screen name="settings" options={{ title: "" }} />
       </Stack>
     </Provider>

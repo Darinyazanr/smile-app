@@ -214,6 +214,12 @@ export default function HomeScreen() {
               <Text style={styles.navText}>打卡日历</Text>
             </TouchableOpacity>
           </Link>
+          <Link href="/stats" asChild>
+            <TouchableOpacity style={styles.navItem}>
+              <Ionicons name="stats-chart-outline" size={24} color="#64748B" />
+              <Text style={styles.navText}>微笑统计</Text>
+            </TouchableOpacity>
+          </Link>
           <Link href="/settings" asChild>
             <TouchableOpacity style={styles.navItem}>
               <Ionicons name="settings-outline" size={24} color="#64748B" />
