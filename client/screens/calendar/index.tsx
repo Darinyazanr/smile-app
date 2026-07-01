@@ -264,9 +264,11 @@ export default function CalendarScreen() {
                   {day.day}
                 </Text>
                 {day.record && (
-                  <Text style={styles.moodIndicator}>
-                    <MoodEmoji type={day.record.smiled ? 'smiled' : 'notSmiled'} />
-                  </Text>
+                  <MoodEmoji
+                    type={day.record.smiled ? 'smiled' : 'notSmiled'}
+                    size={14}
+                    style={styles.moodIndicator}
+                  />
                 )}
               </TouchableOpacity>
             ))}
@@ -459,8 +461,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   moodIndicator: {
-    fontSize: 10,
     marginTop: 2,
+    textAlign: 'center',
   },
   summary: {
     flexDirection: 'row',
