@@ -36,16 +36,7 @@ export default function HomeScreen() {
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 加载态
-  if (isLoading) {
-    return <LoadingScreen message="正在加载今日微笑..." />;
-  }
-
-  // 错误态
-  if (error) {
-    return <ErrorScreen message={error} onRetry={refreshData} />;
-  }
-
+  // 所有 hooks 必须在 early return 之前调用（React Hooks 规则）
   const handleMoodSelect = useCallback((smiled: boolean) => {
     setSelectedMood(smiled);
     setReason(todayRecord?.reason || '');
@@ -116,6 +107,16 @@ export default function HomeScreen() {
   }, []);
 
   const isCheckedIn = !!todayRecord;
+
+  // 加载态 — early return 在所有 hooks 之后
+  if (isLoading) {
+    return <LoadingScreen message="正在加载今日微笑..." />;
+  }
+
+  // 错误态 — early return 在所有 hooks 之后
+  if (error) {
+    return <ErrorScreen message={error} onRetry={refreshData} />;
+  }
 
   return (
     <Screen>

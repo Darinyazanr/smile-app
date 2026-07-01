@@ -25,34 +25,7 @@ export default function AuthScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const { signIn, signUp, isGuestMode } = useAuth();
 
-  // 游客模式下显示提示信息
-  if (isGuestMode) {
-    return (
-      <Screen style={styles.container}>
-        <View style={styles.guestContainer}>
-          <Text style={styles.guestEmoji}>😊</Text>
-          <Text style={styles.guestTitle}>今日微笑</Text>
-          <Text style={styles.guestSubtitle}>离线模式 · 无需登录</Text>
-          <Text style={styles.guestDesc}>
-            当前为本地预览环境，您的打卡记录将保存在设备本地。{'\n'}
-            配置 Supabase 后可启用云同步功能。
-          </Text>
-          <TouchableOpacity
-            style={styles.guestButton}
-            onPress={() => {
-              // 路由守卫会自动跳转
-              if (typeof window !== 'undefined') {
-                window.location.href = '/';
-              }
-            }}
-          >
-            <Text style={styles.guestButtonText}>开始使用</Text>
-          </TouchableOpacity>
-        </View>
-      </Screen>
-    );
-  }
-
+  // 所有 hooks 必须在 early return 之前调用（React Hooks 规则）
   const handleLogin = useCallback(async () => {
     if (!email.trim()) {
       Alert.alert('提示', '请输入邮箱');
@@ -111,6 +84,34 @@ export default function AuthScreen() {
       setIsLoading(false);
     }
   }, [email, password, confirmPassword, signUp]);
+
+  // 游客模式下显示提示信息 — early return 在所有 hooks 之后
+  if (isGuestMode) {
+    return (
+      <Screen style={styles.container}>
+        <View style={styles.guestContainer}>
+          <Text style={styles.guestEmoji}>😊</Text>
+          <Text style={styles.guestTitle}>今日微笑</Text>
+          <Text style={styles.guestSubtitle}>离线模式 · 无需登录</Text>
+          <Text style={styles.guestDesc}>
+            当前为本地预览环境，您的打卡记录将保存在设备本地。{'\n'}
+            配置 Supabase 后可启用云同步功能。
+          </Text>
+          <TouchableOpacity
+            style={styles.guestButton}
+            onPress={() => {
+              // 路由守卫会自动跳转
+              if (typeof window !== 'undefined') {
+                window.location.href = '/';
+              }
+            }}
+          >
+            <Text style={styles.guestButtonText}>开始使用</Text>
+          </TouchableOpacity>
+        </View>
+      </Screen>
+    );
+  }
 
   return (
     <Screen style={styles.container}>
