@@ -1,0 +1,437 @@
+/**
+ * 今日微笑 - 设置页
+ * 包含通知提醒设置、分享成就等功能
+ */
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  Alert,
+  Share,
+  Platform,
+} from 'react-native';
+import { Screen } from '@/components/Screen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { Link, useRouter } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useSmile } from '@/contexts/SmileContext';
+import { SMILE } from '@/components/Emoji';
+
+export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { streak, totalDays, notificationSettings, updateNotificationSettings } = useSmile();
+  
+  // 时间选择器状态
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  const [tempTime, setTempTime] = useState(new Date());
+
+  // 切换通知开关
+  const handleNotificationToggle = useCallback(async (value: boolean) => {
+    await updateNotificationSettings({ enabled: value });
+  }, [updateNotificationSettings]);
+
+  // 打开时间选择器
+  const handleTimePress = useCallback(() => {
+    const now = new Date();
+    now.setHours(notificationSettings.hour, notificationSettings.minute, 0, 0);
+    setTempTime(now);
+    setShowTimePicker(true);
+  }, [notificationSettings]);
+
+  // 时间选择确认
+  const handleTimeChange = useCallback(async (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
+
+    if (event.type === 'set' && selectedDate) {
+      const hour = selectedDate.getHours();
+      const minute = selectedDate.getMinutes();
+      await updateNotificationSettings({ hour, minute });
+    }
+  }, [updateNotificationSettings]);
+
+  // 时间选择确认（iOS）
+  const handleTimeConfirm = useCallback(async () => {
+    const hour = tempTime.getHours();
+    const minute = tempTime.getMinutes();
+    await updateNotificationSettings({ hour, minute });
+    setShowTimePicker(false);
+  }, [tempTime, updateNotificationSettings]);
+
+  // 格式化时间
+  const formatTime = (hour: number, minute: number): string => {
+    const h = hour.toString().padStart(2, '0');
+    const m = minute.toString().padStart(2, '0');
+    return `${h}:${m}`;
+  };
+
+  // 分享成就
+  const handleShare = useCallback(async () => {
+    const message = `我在「今日微笑」连续打卡 ${streak} 天！\n总共记录了 ${totalDays} 天的微笑。\n\n你也来试试记录每天的微笑吧 ${SMILE}`;
+    
+    try {
+      await Share.share({
+        message,
+        title: '分享我的打卡成就',
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  }, [streak, totalDays]);
+
+  // 关于
+  const handleAbout = useCallback(() => {
+    Alert.alert(
+      '关于「今日微笑」',
+      '记录每天的微笑，保持积极乐观的心态。\n\n版本 1.0.0',
+      [{ text: '好的' }]
+    );
+  }, []);
+
+  return (
+    <Screen>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#374151" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>设置</Text>
+          <View style={styles.headerRight} />
+        </View>
+
+        <View style={styles.content}>
+          {/* 成就卡片 */}
+          <View style={styles.achievementCard}>
+            <Text style={styles.achievementTitle}>我的成就</Text>
+            <View style={styles.achievementStats}>
+              <View style={styles.achievementItem}>
+                <Text style={styles.achievementNumber}>{streak}</Text>
+                <Text style={styles.achievementLabel}>连续打卡</Text>
+              </View>
+              <View style={styles.achievementDivider} />
+              <View style={styles.achievementItem}>
+                <Text style={styles.achievementNumber}>{totalDays}</Text>
+                <Text style={styles.achievementLabel}>总打卡</Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+              <Ionicons name="share-outline" size={20} color="#F59E0B" />
+              <Text style={styles.shareButtonText}>分享成就</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 提醒设置 */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>提醒设置</Text>
+            <View style={styles.settingCard}>
+              <View style={styles.settingItem}>
+                <View style={styles.settingLeft}>
+                  <Ionicons name="notifications-outline" size={22} color="#64748B" />
+                  <Text style={styles.settingText}>每日提醒</Text>
+                </View>
+                <Switch
+                  value={notificationSettings.enabled}
+                  onValueChange={handleNotificationToggle}
+                  trackColor={{ false: '#E5E7EB', true: '#FCD34D' }}
+                  thumbColor={notificationSettings.enabled ? '#F59E0B' : '#94A3B8'}
+                />
+              </View>
+
+              <View style={styles.settingDivider} />
+
+              <TouchableOpacity 
+                style={styles.settingItem}
+                onPress={handleTimePress}
+                disabled={!notificationSettings.enabled}
+              >
+                <View style={styles.settingLeft}>
+                  <Ionicons name="time-outline" size={22} color="#64748B" />
+                  <Text style={[
+                    styles.settingText,
+                    !notificationSettings.enabled && styles.settingTextDisabled
+                  ]}>
+                    提醒时间
+                  </Text>
+                </View>
+                <View style={styles.settingRight}>
+                  <Text style={[
+                    styles.settingValue,
+                    !notificationSettings.enabled && styles.settingValueDisabled
+                  ]}>
+                    {formatTime(notificationSettings.hour, notificationSettings.minute)}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+                </View>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.hint}>
+              每天 {formatTime(notificationSettings.hour, notificationSettings.minute)} 会收到提醒
+            </Text>
+          </View>
+
+          {/* 其他设置 */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>其他</Text>
+            <View style={styles.settingCard}>
+              <TouchableOpacity style={styles.settingItem} onPress={handleAbout}>
+                <View style={styles.settingLeft}>
+                  <Ionicons name="information-circle-outline" size={22} color="#64748B" />
+                  <Text style={styles.settingText}>关于</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* 时间选择器弹窗 (Android) */}
+        {showTimePicker && Platform.OS === 'android' && (
+          <DateTimePicker
+            value={tempTime}
+            mode="time"
+            is24Hour={true}
+            display="default"
+            onChange={handleTimeChange}
+          />
+        )}
+
+        {/* 时间选择器弹窗 (iOS) */}
+        {showTimePicker && Platform.OS === 'ios' && (
+          <View style={styles.iosPickerOverlay}>
+            <TouchableOpacity 
+              style={styles.iosPickerBackdrop} 
+              onPress={() => setShowTimePicker(false)} 
+            />
+            <View style={[styles.iosPickerContainer, { paddingBottom: insets.bottom }]}>
+              <View style={styles.iosPickerHeader}>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={styles.iosPickerCancel}>取消</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleTimeConfirm}>
+                  <Text style={styles.iosPickerConfirm}>确认</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={tempTime}
+                mode="time"
+                is24Hour={true}
+                display="spinner"
+                onChange={(event, date) => date && setTempTime(date)}
+                style={styles.iosPicker}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Footer */}
+        <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
+          <Text style={styles.footerText}>今日微笑 v1.0.0</Text>
+          <Text style={styles.footerSubtext}>保持微笑每一天 {SMILE}</Text>
+        </View>
+      </View>
+    </Screen>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#FAFAFA',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+  },
+  headerRight: {
+    width: 32,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  achievementCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  achievementTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 16,
+  },
+  achievementStats: {
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  achievementItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  achievementNumber: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#F59E0B',
+    marginBottom: 4,
+  },
+  achievementLabel: {
+    fontSize: 12,
+    color: '#64748B',
+  },
+  achievementDivider: {
+    width: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  shareButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F59E0B',
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  settingCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  settingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  settingText: {
+    fontSize: 15,
+    color: '#1F2937',
+  },
+  settingTextDisabled: {
+    color: '#94A3B8',
+  },
+  settingRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  settingValue: {
+    fontSize: 15,
+    color: '#64748B',
+  },
+  settingValueDisabled: {
+    color: '#CBD5E1',
+  },
+  settingDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginLeft: 50,
+  },
+  hint: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 8,
+    marginLeft: 4,
+  },
+  // iOS Picker
+  iosPickerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  iosPickerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+  },
+  iosPickerContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  iosPickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  iosPickerCancel: {
+    fontSize: 15,
+    color: '#64748B',
+  },
+  iosPickerConfirm: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#F59E0B',
+  },
+  iosPicker: {
+    height: 200,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  footerText: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginBottom: 2,
+  },
+  footerSubtext: {
+    fontSize: 12,
+    color: '#CBD5E1',
+  },
+});

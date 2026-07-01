@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- 背景渐变：温暖黄色 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FEF3C7"/>
+      <stop offset="100%" style="stop-color:#FDE68A"/>
+    </linearGradient>
+    <!-- 圆角矩形背景 -->
+    <rect id="bg" x="0" y="0" width="1024" height="1024" rx="180" ry="180"/>
+  </defs>
+  
+  <!-- 背景 -->
+  <use href="#bg" fill="url(#bgGradient)"/>
+  
+  <!-- 笑脸主体 - 圆形 -->
+  <circle cx="512" cy="520" r="340" fill="#FCD34D"/>
+  
+  <!-- 眼睛 - 左 -->
+  <ellipse cx="380" cy="440" rx="45" ry="55" fill="#1F2937"/>
+  
+  <!-- 眼睛 - 右 -->
+  <ellipse cx="644" cy="440" rx="45" ry="55" fill="#1F2937"/>
+  
+  <!-- 眼睛高光 - 左 -->
+  <circle cx="395" cy="425" r="15" fill="white"/>
+  
+  <!-- 眼睛高光 - 右 -->
+  <circle cx="659" cy="425" r="15" fill="white"/>
+  
+  <!-- 微笑 - 使用路径绘制自然曲线 -->
+  <path d="M 320 540 Q 512 750 704 540" 
+        fill="none" 
+        stroke="#1F2937" 
+        stroke-width="45" 
+        stroke-linecap="round"/>
+  
+  <!-- 腮红 - 左 -->
+  <ellipse cx="280" cy="560" rx="60" ry="35" fill="#FBBF24" opacity="0.5"/>
+  
+  <!-- 腮红 - 右 -->
+  <ellipse cx="744" cy="560" rx="60" ry="35" fill="#FBBF24" opacity="0.5"/>
+  
+  <!-- 顶部装饰：小型音符/星星 -->
+  <circle cx="512" cy="150" r="30" fill="#34D399"/>
+  <text x="512" y="162" text-anchor="middle" font-size="36" fill="white">✦</text>
+</svg>
