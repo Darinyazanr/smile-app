@@ -1,29 +1,36 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
-const appName = "今日微笑";
-const projectId = process.env.COZE_PROJECT_ID || process.env.EXPO_PUBLIC_COZE_PROJECT_ID;
-const slugAppName = projectId ? `app${projectId}` : 'myapp';
+const APP_NAME = '今日微笑';
+const BUNDLE_ID = 'com.smileapp.today';
+const VERSION = '1.2.0';
+const BUILD_NUMBER = '3';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
-    "name": appName,
-    "slug": slugAppName,
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+    name: APP_NAME,
+    slug: 'smile-app',
+    version: VERSION,
+    orientation: 'portrait',
+    icon: './assets/images/icon.png',
+    scheme: 'smileapp',
+    userInterfaceStyle: 'automatic',
+    newArchEnabled: true,
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: BUNDLE_ID,
+      buildNumber: BUILD_NUMBER,
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false,
       },
-      "package": `com.anonymous.x${projectId || '0'}`
+    },
+    android: {
+      adaptiveIcon: {
+        foregroundImage: './assets/images/adaptive-icon.png',
+        backgroundColor: '#ffffff',
+      },
+      package: BUNDLE_ID,
+      versionCode: 3,
     },
     "web": {
       "bundler": "metro",

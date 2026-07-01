@@ -38,3 +38,10 @@ coverage/
 # Temporary files
 *.tmp
 .cache/
+
+# EAS Build
+*.ipa
+*.apk
+*.aab
+credentials.json
+eas-build-*.log

@@ -9,7 +9,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Switch,
-  Alert,
   Share,
   Platform,
 } from 'react-native';
@@ -20,6 +19,7 @@ import { Link, useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSmile } from '@/contexts/SmileContext';
 import { SMILE } from '@/components/Emoji';
+import BottomSheet from '@/components/BottomSheet';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -29,6 +29,8 @@ export default function SettingsScreen() {
   // 时间选择器状态
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [tempTime, setTempTime] = useState(new Date());
+  // 关于弹窗
+  const [showAbout, setShowAbout] = useState(false);
 
   // 切换通知开关
   const handleNotificationToggle = useCallback(async (value: boolean) => {
@@ -87,11 +89,7 @@ export default function SettingsScreen() {
 
   // 关于
   const handleAbout = useCallback(() => {
-    Alert.alert(
-      '关于「今日微笑」',
-      '记录每天的微笑，保持积极乐观的心态。\n\n版本 1.0.0',
-      [{ text: '好的' }]
-    );
+    setShowAbout(true);
   }, []);
 
   return (
@@ -235,6 +233,87 @@ export default function SettingsScreen() {
           <Text style={styles.footerText}>今日微笑 v1.0.0</Text>
           <Text style={styles.footerSubtext}>保持微笑每一天 {SMILE}</Text>
         </View>
+
+        {/* 关于弹窗 */}
+        <BottomSheet visible={showAbout} onClose={() => setShowAbout(false)}>
+          <BottomSheet.Header onClose={() => setShowAbout(false)}>
+            <BottomSheet.Title>关于「今日微笑」</BottomSheet.Title>
+          </BottomSheet.Header>
+          <BottomSheet.Body>
+            {/* App 图标和理念 */}
+            <View style={styles.aboutIconRow}>
+              <View style={styles.aboutIconBox}>
+                <Text style={styles.aboutIconEmoji}>{SMILE}</Text>
+              </View>
+              <View style={styles.aboutIconText}>
+                <Text style={styles.aboutAppName}>今日微笑</Text>
+                <Text style={styles.aboutTagline}>每天问自己一次，今天你笑了吗？</Text>
+              </View>
+            </View>
+
+            {/* 分割线 */}
+            <View style={styles.aboutDivider} />
+
+            {/* 核心理念 */}
+            <Text style={styles.aboutSectionLabel}>核心理念</Text>
+            <Text style={styles.aboutParagraph}>
+              生活不总是一帆风顺，但每一天都值得被记录。
+              我们相信，关注情绪是善待自己的开始——
+              无论今天笑了还是没笑，都是真实的你。
+            </Text>
+            <Text style={styles.aboutParagraph}>
+              一个简单的打卡动作，帮你看见情绪的变化，
+              在微笑的日子里感恩，在低落的日子里觉察。
+            </Text>
+
+            {/* 功能亮点 */}
+            <Text style={styles.aboutSectionLabel}>功能亮点</Text>
+            <View style={styles.aboutFeatureList}>
+              <View style={styles.aboutFeatureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#F59E0B" />
+                <Text style={styles.aboutFeatureText}>每日一键打卡，记录笑与不笑</Text>
+              </View>
+              <View style={styles.aboutFeatureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#F59E0B" />
+                <Text style={styles.aboutFeatureText}>日历视图，回顾每月的情绪轨迹</Text>
+              </View>
+              <View style={styles.aboutFeatureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#F59E0B" />
+                <Text style={styles.aboutFeatureText}>微笑统计，看见自己的坚持与变化</Text>
+              </View>
+              <View style={styles.aboutFeatureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#F59E0B" />
+                <Text style={styles.aboutFeatureText}>每日提醒，不错过每一个微笑瞬间</Text>
+              </View>
+              <View style={styles.aboutFeatureItem}>
+                <Ionicons name="checkmark-circle" size={18} color="#F59E0B" />
+                <Text style={styles.aboutFeatureText}>照片记录，为心情附上一张画面</Text>
+              </View>
+            </View>
+
+            {/* 版本信息 */}
+            <View style={styles.aboutDivider} />
+            <View style={styles.aboutMetaRow}>
+              <Text style={styles.aboutMetaLabel}>版本</Text>
+              <Text style={styles.aboutMetaValue}>1.2.0</Text>
+            </View>
+            <View style={styles.aboutMetaRow}>
+              <Text style={styles.aboutMetaLabel}>技术</Text>
+              <Text style={styles.aboutMetaValue}>Expo · React Native · Supabase</Text>
+            </View>
+            <View style={styles.aboutMetaRow}>
+              <Text style={styles.aboutMetaLabel}>设计</Text>
+              <Text style={styles.aboutMetaValue}>极简 · 温暖 · 专注</Text>
+            </View>
+
+            {/* 结尾语 */}
+            <View style={styles.aboutClosing}>
+              <Text style={styles.aboutClosingText}>
+                愿你每天都有一万个理由微笑 {SMILE}
+              </Text>
+            </View>
+          </BottomSheet.Body>
+        </BottomSheet>
       </View>
     </Screen>
   );
@@ -433,5 +512,95 @@ const styles = StyleSheet.create({
   footerSubtext: {
     fontSize: 12,
     color: '#CBD5E1',
+  },
+  // 关于弹窗样式
+  aboutIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  aboutIconBox: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  aboutIconEmoji: {
+    fontSize: 28,
+  },
+  aboutIconText: {
+    flex: 1,
+  },
+  aboutAppName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+    marginBottom: 2,
+  },
+  aboutTagline: {
+    fontSize: 13,
+    color: '#94A3B8',
+    lineHeight: 18,
+  },
+  aboutDivider: {
+    height: 1,
+    backgroundColor: '#F1F5F9',
+    marginVertical: 18,
+  },
+  aboutSectionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  aboutParagraph: {
+    fontSize: 14,
+    color: '#475569',
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  aboutFeatureList: {
+    gap: 10,
+  },
+  aboutFeatureItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  aboutFeatureText: {
+    fontSize: 14,
+    color: '#334155',
+  },
+  aboutMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 6,
+  },
+  aboutMetaLabel: {
+    fontSize: 13,
+    color: '#94A3B8',
+  },
+  aboutMetaValue: {
+    fontSize: 13,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  aboutClosing: {
+    marginTop: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFBEB',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  aboutClosingText: {
+    fontSize: 14,
+    color: '#92400E',
+    fontWeight: '500',
+    lineHeight: 20,
   },
 });
