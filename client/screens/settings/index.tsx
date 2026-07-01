@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSmile } from '@/contexts/SmileContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { SMILE } from '@/components/Emoji';
 import BottomSheet from '@/components/BottomSheet';
 import Constants from 'expo-constants';
@@ -26,6 +27,21 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { streak, totalDays, notificationSettings, updateNotificationSettings } = useSmile();
+  const { signOut } = useAuth();
+  
+  // 退出登录确认
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = useCallback(async () => {
+    setLoggingOut(true);
+    try {
+      await signOut();
+    } finally {
+      setLoggingOut(false);
+      setShowLogoutConfirm(false);
+    }
+  }, [signOut]);
   
   // 时间选择器状态
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -241,6 +257,14 @@ export default function SettingsScreen() {
 
         {/* Footer */}
         <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
+          {/* 退出登录 */}
+          <TouchableOpacity 
+            style={styles.logoutButton} 
+            onPress={() => setShowLogoutConfirm(true)}
+          >
+            <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+            <Text style={styles.logoutText}>退出登录</Text>
+          </TouchableOpacity>
           <Text style={styles.footerText}>今日微笑 v{Constants.expoConfig?.version || '1.0.0'}</Text>
           <Text style={styles.footerSubtext}>保持微笑每一天 {SMILE}</Text>
         </View>
@@ -429,6 +453,39 @@ export default function SettingsScreen() {
               <Text style={styles.privacyFooterText}>
                 卸载 App 即彻底清除所有数据。{'\n'}你拥有对自己数据的完全控制权。
               </Text>
+            </View>
+          </BottomSheet.Body>
+        </BottomSheet>
+
+        {/* 退出登录确认弹窗 */}
+        <BottomSheet visible={showLogoutConfirm} onClose={() => setShowLogoutConfirm(false)}>
+          <BottomSheet.Header onClose={() => setShowLogoutConfirm(false)}>
+            <BottomSheet.Title>退出登录</BottomSheet.Title>
+          </BottomSheet.Header>
+          <BottomSheet.Body>
+            <View style={styles.logoutConfirmBody}>
+              <Ionicons name="log-out-outline" size={48} color="#EF4444" style={{ marginBottom: 16 }} />
+              <Text style={styles.logoutConfirmTitle}>确定要退出吗？</Text>
+              <Text style={styles.logoutConfirmDesc}>
+                退出后你的打卡数据仍然保存在本地，重新登录后数据不会丢失。
+              </Text>
+              <View style={styles.logoutConfirmButtons}>
+                <TouchableOpacity 
+                  style={styles.logoutCancelBtn}
+                  onPress={() => setShowLogoutConfirm(false)}
+                >
+                  <Text style={styles.logoutCancelBtnText}>取消</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.logoutConfirmBtn, loggingOut && styles.logoutConfirmBtnDisabled]}
+                  onPress={handleLogout}
+                  disabled={loggingOut}
+                >
+                  <Text style={styles.logoutConfirmBtnText}>
+                    {loggingOut ? '退出中...' : '确认退出'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </BottomSheet.Body>
         </BottomSheet>
@@ -630,6 +687,74 @@ const styles = StyleSheet.create({
   footerSubtext: {
     fontSize: 12,
     color: '#CBD5E1',
+  },
+  // 退出登录
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    marginBottom: 16,
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#EF4444',
+  },
+  logoutConfirmBody: {
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  logoutConfirmTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 8,
+  },
+  logoutConfirmDesc: {
+    fontSize: 14,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  logoutConfirmButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  logoutCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    alignItems: 'center',
+  },
+  logoutCancelBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  logoutConfirmBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+  },
+  logoutConfirmBtnDisabled: {
+    opacity: 0.6,
+  },
+  logoutConfirmBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   // 关于弹窗样式
   aboutIconRow: {
