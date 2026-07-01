@@ -383,7 +383,7 @@ export default function SettingsScreen() {
                 </View>
                 <View style={styles.privacyItemText}>
                   <Text style={styles.privacyItemTitle}>不出售任何数据</Text>
-                  <Text style={styles.privacyItemDesc}>我们没有广告、没有第三方 SDK、没有任何商业数据变现</Text>
+                  <Text style={styles.privacyItemDesc}>我们不收集个人信息，你的数据仅存储在设备本地</Text>
                 </View>
               </View>
               <View style={styles.privacyItem}>
