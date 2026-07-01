@@ -7,7 +7,7 @@ export interface SmileRecord {
   smiled: boolean;
   reason?: string;
   photoPath?: string;
-  createdAt: number;
+  createdAt: number; // Unix 时间戳 (毫秒)
 }
 
 /**

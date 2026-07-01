@@ -134,12 +134,55 @@ class StorageService {
       smiled,
       reason,
       photoPath,
-      createdAt: new Date().toISOString(),
+      createdAt: Date.now(),
     };
 
     this.recordsCache.set(today, record);
     await this.saveRecords();
     return record;
+  }
+
+  /**
+   * 保存或更新打卡记录（支持指定日期）
+   * Context 层调用的统一入口
+   */
+  async saveRecord(date: string, smiled: boolean, reason?: string, photoUri?: string): Promise<SmileRecord> {
+    let photoPath: string | undefined;
+
+    if (photoUri && Platform.OS !== 'web') {
+      photoPath = await this.savePhoto(photoUri);
+    }
+
+    // 如果是更新已有记录且新记录没有照片，保留旧照片
+    const existing = this.recordsCache.get(date);
+    if (!photoPath && existing?.photoPath) {
+      photoPath = existing.photoPath;
+    }
+
+    const record: SmileRecord = {
+      id: existing?.id || generateId(),
+      date,
+      smiled,
+      reason,
+      photoPath,
+      createdAt: existing?.createdAt || Date.now(),
+    };
+
+    this.recordsCache.set(date, record);
+    await this.saveRecords();
+    return record;
+  }
+
+  /**
+   * 删除指定日期的打卡记录
+   */
+  async deleteRecord(date: string): Promise<void> {
+    const record = this.recordsCache.get(date);
+    if (record?.photoPath) {
+      await this.deletePhoto(record.photoPath);
+    }
+    this.recordsCache.delete(date);
+    await this.saveRecords();
   }
 
   /**
