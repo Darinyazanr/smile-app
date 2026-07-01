@@ -20,6 +20,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useSmile } from '@/contexts/SmileContext';
 import { SMILE } from '@/components/Emoji';
 import BottomSheet from '@/components/BottomSheet';
+import Constants from 'expo-constants';
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -230,7 +231,7 @@ export default function SettingsScreen() {
 
         {/* Footer */}
         <View style={[styles.footer, { paddingBottom: insets.bottom + 10 }]}>
-          <Text style={styles.footerText}>今日微笑 v1.0.0</Text>
+          <Text style={styles.footerText}>今日微笑 v{Constants.expoConfig?.version || '1.0.0'}</Text>
           <Text style={styles.footerSubtext}>保持微笑每一天 {SMILE}</Text>
         </View>
 
@@ -295,7 +296,7 @@ export default function SettingsScreen() {
             <View style={styles.aboutDivider} />
             <View style={styles.aboutMetaRow}>
               <Text style={styles.aboutMetaLabel}>版本</Text>
-              <Text style={styles.aboutMetaValue}>1.2.0</Text>
+              <Text style={styles.aboutMetaValue}>{Constants.expoConfig?.version || '1.0.0'}</Text>
             </View>
             <View style={styles.aboutMetaRow}>
               <Text style={styles.aboutMetaLabel}>技术</Text>
