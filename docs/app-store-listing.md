@@ -3,8 +3,9 @@
 ## 1. .env 环境变量（在 Mac 上创建 `client/.env`）
 
 ```
-EXPO_PUBLIC_SUPABASE_URL=https://rzhjkgngwcmwqpwdbsuh.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6aGprZ25nd2Ntd3Fwd2Ric3VoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NzIzNjgsImV4cCI6MjA5ODQ0ODM2OH0.YFY6jecL4mvA9feBKeO7NRfbBd2dymUpdsyBVdE4SSk
+EXPO_PUBLIC_SUPABASE_URL=<你的 Supabase Project URL>
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<你的 Supabase anon key>
+```
 ```
 
 ---
