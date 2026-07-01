@@ -1,6 +1,7 @@
 /**
  * 今日微笑 - 首页
  * 核心功能：今日打卡、查看统计
+ * 样式方案：Tailwind (className) 为主，复杂阴影/动画保留 StyleSheet
  */
 import React, { useState, useCallback } from 'react';
 import {
@@ -29,7 +30,6 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { todayRecord, streak, totalDays, saveRecord, isLoading, error, refreshData } = useSmile();
   
-  // 状态
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMood, setSelectedMood] = useState<boolean | null>(null);
   const [reason, setReason] = useState('');
@@ -46,7 +46,6 @@ export default function HomeScreen() {
     return <ErrorScreen message={error} onRetry={refreshData} />;
   }
 
-  // 打开录入浮层
   const handleMoodSelect = useCallback((smiled: boolean) => {
     setSelectedMood(smiled);
     setReason(todayRecord?.reason || '');
@@ -54,7 +53,6 @@ export default function HomeScreen() {
     setModalVisible(true);
   }, [todayRecord]);
 
-  // 选择照片
   const handlePickImage = useCallback(async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permissionResult.granted) {
@@ -74,7 +72,6 @@ export default function HomeScreen() {
     }
   }, []);
 
-  // 拍照
   const handleTakePhoto = useCallback(async () => {
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissionResult.granted) {
@@ -93,7 +90,6 @@ export default function HomeScreen() {
     }
   }, []);
 
-  // 提交记录
   const handleSubmit = useCallback(async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -101,7 +97,6 @@ export default function HomeScreen() {
     try {
       await saveRecord(selectedMood!, reason.trim() || undefined, photoUri || undefined);
       setModalVisible(false);
-      // 重置状态
       setSelectedMood(null);
       setReason('');
       setPhotoUri(null);
@@ -113,7 +108,6 @@ export default function HomeScreen() {
     }
   }, [selectedMood, reason, photoUri, saveRecord, isSubmitting]);
 
-  // 取消
   const handleCancel = useCallback(() => {
     setModalVisible(false);
     setSelectedMood(null);
@@ -125,50 +119,51 @@ export default function HomeScreen() {
 
   return (
     <Screen>
-      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+      <View className="flex-1 bg-[#FAFAFA]" style={{ paddingTop: insets.top + 20 }}>
         {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>今日微笑</Text>
-          <Text style={styles.date}>{dayjs().format('MM月DD日 dddd')}</Text>
+        <View className="items-center px-5 mb-5">
+          <Text className="text-[28px] font-bold text-[#1F2937] mb-1">今日微笑</Text>
+          <Text className="text-sm text-[#64748B]">{dayjs().format('MM月DD日 dddd')}</Text>
         </View>
 
         {/* Stats Card */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{streak}</Text>
-            <Text style={styles.statLabel}>连续打卡</Text>
+        <View style={styles.statsCard} className="mx-5">
+          <View className="flex-1 items-center">
+            <Text className="text-[28px] font-bold text-[#F59E0B] mb-1">{streak}</Text>
+            <Text className="text-xs text-[#64748B]">连续打卡</Text>
           </View>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{totalDays}</Text>
-            <Text style={styles.statLabel}>总打卡</Text>
+          <View className="flex-1 items-center">
+            <Text className="text-[28px] font-bold text-[#F59E0B] mb-1">{totalDays}</Text>
+            <Text className="text-xs text-[#64748B]">总打卡</Text>
           </View>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statNumber, { color: todayRecord?.smiled ? '#22C55E' : '#94A3B8' }]}>
+          <View className="flex-1 items-center">
+            <Text 
+              className="text-[28px] font-bold mb-1"
+              style={{ color: todayRecord?.smiled ? '#22C55E' : '#94A3B8' }}
+            >
               {todayRecord ? <MoodEmoji type={todayRecord.smiled ? 'smiled' : 'notSmiled'} /> : '-'}
             </Text>
-            <Text style={styles.statLabel}>今日状态</Text>
+            <Text className="text-xs text-[#64748B]">今日状态</Text>
           </View>
         </View>
 
         {/* Main Check-in Area */}
-        <View style={styles.mainArea}>
+        <View className="flex-1 justify-center px-5">
           {isCheckedIn ? (
-            <View style={styles.checkedInContainer}>
-              <Text style={styles.checkedInEmoji}>
+            <View className="items-center">
+              <Text className="text-[72px] mb-4">
                 <MoodEmoji type={todayRecord!.smiled ? 'smiled' : 'notSmiled'} />
               </Text>
-              <Text style={styles.checkedInTitle}>
-                今日已打卡
-              </Text>
-              <Text style={styles.checkedInSubtitle}>
+              <Text className="text-2xl font-semibold text-[#1F2937] mb-2">今日已打卡</Text>
+              <Text className="text-base text-[#64748B] mb-5">
                 {todayRecord!.smiled ? '今天你笑得很开心！' : '没关系，明天继续加油！'}
               </Text>
               {todayRecord!.reason && (
                 <View style={styles.reasonCard}>
-                  <Text style={styles.reasonLabel}>记录原因</Text>
-                  <Text style={styles.reasonText}>{todayRecord!.reason}</Text>
+                  <Text className="text-xs text-[#94A3B8] mb-1">记录原因</Text>
+                  <Text className="text-sm text-[#374151]">{todayRecord!.reason}</Text>
                 </View>
               )}
               {todayRecord!.photoPath && (
@@ -178,28 +173,28 @@ export default function HomeScreen() {
                 style={styles.changeButton}
                 onPress={() => handleMoodSelect(todayRecord!.smiled)}
               >
-                <Text style={styles.changeButtonText}>修改记录</Text>
+                <Text className="text-sm text-[#64748B]">修改记录</Text>
               </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.notCheckedInContainer}>
-              <Text style={styles.questionText}>今天笑了吗？</Text>
-              <View style={styles.buttonGroup}>
+            <View className="items-center">
+              <Text className="text-2xl font-semibold text-[#1F2937] mb-[30px]">今天笑了吗？</Text>
+              <View className="flex-row gap-5">
                 <TouchableOpacity
-                  style={[styles.moodButton, styles.smiledButton]}
+                  style={styles.smiledButton}
                   onPress={() => handleMoodSelect(true)}
                   activeOpacity={0.8}
                 >
                   <MoodEmoji type="smiled" style={styles.moodEmoji} />
-                  <Text style={styles.moodText}>笑了</Text>
+                  <Text className="text-lg font-semibold text-[#374151]">笑了</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.moodButton, styles.notSmiledButton]}
+                  style={styles.notSmiledButton}
                   onPress={() => handleMoodSelect(false)}
                   activeOpacity={0.8}
                 >
                   <MoodEmoji type="notSmiled" style={styles.moodEmoji} />
-                  <Text style={styles.moodText}>没笑</Text>
+                  <Text className="text-lg font-semibold text-[#374151]">没笑</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -207,35 +202,35 @@ export default function HomeScreen() {
         </View>
 
         {/* Bottom Navigation */}
-        <View style={[styles.bottomNav, { paddingBottom: insets.bottom + 10 }]}>
+        <View 
+          className="flex-row justify-around bg-white pt-3 border-t border-[#F1F5F9]"
+          style={{ paddingBottom: insets.bottom + 10 }}
+        >
           <Link href="/calendar" asChild>
-            <TouchableOpacity style={styles.navItem}>
+            <TouchableOpacity className="items-center px-10">
               <Ionicons name="calendar-outline" size={24} color="#64748B" />
-              <Text style={styles.navText}>打卡日历</Text>
+              <Text className="text-xs text-[#64748B] mt-1">打卡日历</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/stats" asChild>
-            <TouchableOpacity style={styles.navItem}>
+            <TouchableOpacity className="items-center px-10">
               <Ionicons name="stats-chart-outline" size={24} color="#64748B" />
-              <Text style={styles.navText}>微笑统计</Text>
+              <Text className="text-xs text-[#64748B] mt-1">微笑统计</Text>
             </TouchableOpacity>
           </Link>
           <Link href="/settings" asChild>
-            <TouchableOpacity style={styles.navItem}>
+            <TouchableOpacity className="items-center px-10">
               <Ionicons name="settings-outline" size={24} color="#64748B" />
-              <Text style={styles.navText}>设置</Text>
+              <Text className="text-xs text-[#64748B] mt-1">设置</Text>
             </TouchableOpacity>
           </Link>
         </View>
 
         {/* 打卡录入弹窗 */}
-        <BottomSheet
-          visible={modalVisible}
-          onClose={handleCancel}
-        >
+        <BottomSheet visible={modalVisible} onClose={handleCancel}>
           <BottomSheet.Header onClose={handleCancel}>
             <BottomSheet.Title>
-              {selectedMood ? (
+              {selectedMood !== null ? (
                 <>
                   <MoodEmoji type={selectedMood ? 'smiled' : 'notSmiled'} />{' '}
                   {selectedMood ? '记录今日微笑' : '记录今天'}
@@ -246,11 +241,11 @@ export default function HomeScreen() {
 
           <BottomSheet.Body>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* 原因输入 */}
-              <View style={styles.inputSection}>
-                <Text style={styles.inputLabel}>简短描述（可选）</Text>
+              <View className="mb-6">
+                <Text className="text-sm font-medium text-[#374151] mb-2">简短描述（可选）</Text>
                 <TextInput
-                  style={styles.reasonInput}
+                  className="bg-[#F9FAFB] rounded-xl p-3.5 text-sm text-[#1F2937]"
+                  style={{ minHeight: 80 }}
                   placeholder="今天为什么笑/没笑..."
                   placeholderTextColor="#94A3B8"
                   value={reason}
@@ -262,21 +257,20 @@ export default function HomeScreen() {
                 />
               </View>
 
-              {/* 照片上传 */}
-              <View style={styles.inputSection}>
-                <Text style={styles.inputLabel}>添加照片（可选）</Text>
-                <View style={styles.photoButtons}>
+              <View className="mb-6">
+                <Text className="text-sm font-medium text-[#374151] mb-2">添加照片（可选）</Text>
+                <View className="flex-row gap-3">
                   <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
                     <Ionicons name="images-outline" size={24} color="#64748B" />
-                    <Text style={styles.photoButtonText}>相册</Text>
+                    <Text className="text-sm text-[#64748B]">相册</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.photoButton} onPress={handleTakePhoto}>
                     <Ionicons name="camera-outline" size={24} color="#64748B" />
-                    <Text style={styles.photoButtonText}>拍照</Text>
+                    <Text className="text-sm text-[#64748B]">拍照</Text>
                   </TouchableOpacity>
                 </View>
                 {photoUri && (
-                  <View style={styles.photoPreview}>
+                  <View className="mt-3 relative self-center">
                     <Image source={{ uri: photoUri }} style={styles.photoImage} />
                     <TouchableOpacity
                       style={styles.removePhoto}
@@ -292,11 +286,11 @@ export default function HomeScreen() {
 
           <BottomSheet.Footer>
             <TouchableOpacity
-              style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+              className={`rounded-xl py-3.5 items-center ${isSubmitting ? 'bg-[#FCD34D]' : 'bg-[#F59E0B]'}`}
               onPress={handleSubmit}
               disabled={isSubmitting}
             >
-              <Text style={styles.submitButtonText}>
+              <Text className="text-base font-semibold text-white">
                 {isSubmitting ? '保存中...' : '保存记录'}
               </Text>
             </TouchableOpacity>
@@ -307,31 +301,12 @@ export default function HomeScreen() {
   );
 }
 
+// 保留需要阴影/复杂样式的 StyleSheet
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#FAFAFA',
-  },
-  header: {
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1F2937',
-    marginBottom: 4,
-  },
-  date: {
-    fontSize: 14,
-    color: '#64748B',
-  },
   statsCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
-    marginHorizontal: 20,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -339,87 +314,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#F59E0B',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#64748B',
-  },
   statDivider: {
     width: 1,
     backgroundColor: '#E5E7EB',
     marginHorizontal: 10,
-  },
-  mainArea: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  notCheckedInContainer: {
-    alignItems: 'center',
-  },
-  questionText: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 30,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  moodButton: {
-    width: 140,
-    height: 140,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  smiledButton: {
-    backgroundColor: '#FEF3C7',
-  },
-  notSmiledButton: {
-    backgroundColor: '#F1F5F9',
-  },
-  moodEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  moodText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  checkedInContainer: {
-    alignItems: 'center',
-  },
-  checkedInEmoji: {
-    fontSize: 72,
-    marginBottom: 16,
-  },
-  checkedInTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: '#1F2937',
-    marginBottom: 8,
-  },
-  checkedInSubtitle: {
-    fontSize: 16,
-    color: '#64748B',
-    marginBottom: 20,
   },
   reasonCard: {
     backgroundColor: '#FFFFFF',
@@ -432,15 +330,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 2,
-  },
-  reasonLabel: {
-    fontSize: 12,
-    color: '#94A3B8',
-    marginBottom: 4,
-  },
-  reasonText: {
-    fontSize: 14,
-    color: '#374151',
   },
   recordPhoto: {
     width: 200,
@@ -455,48 +344,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
-  changeButtonText: {
-    fontSize: 14,
-    color: '#64748B',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#FFFFFF',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  navItem: {
+  smiledButton: {
+    width: 140,
+    height: 140,
+    borderRadius: 28,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    backgroundColor: '#FEF3C7',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  navText: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 4,
+  notSmiledButton: {
+    width: 140,
+    height: 140,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
-  // Modal 内容样式
-  inputSection: {
-    marginBottom: 24,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
+  moodEmoji: {
+    fontSize: 48,
     marginBottom: 8,
-  },
-  reasonInput: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 14,
-    color: '#1F2937',
-    minHeight: 80,
-  },
-  photoButtons: {
-    flexDirection: 'row',
-    gap: 12,
   },
   photoButton: {
     flex: 1,
@@ -511,15 +387,6 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
     borderStyle: 'dashed',
   },
-  photoButtonText: {
-    fontSize: 14,
-    color: '#64748B',
-  },
-  photoPreview: {
-    marginTop: 12,
-    position: 'relative',
-    alignSelf: 'center',
-  },
   photoImage: {
     width: 150,
     height: 150,
@@ -531,19 +398,5 @@ const styles = StyleSheet.create({
     right: -8,
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
-  },
-  submitButton: {
-    backgroundColor: '#F59E0B',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  submitButtonDisabled: {
-    backgroundColor: '#FCD34D',
-  },
-  submitButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
   },
 });
