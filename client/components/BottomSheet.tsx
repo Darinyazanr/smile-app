@@ -4,16 +4,16 @@
  * 使用场景：打卡录入弹窗、日历详情弹窗等
  *
  * 用法：
- * ```tsx
+ * ```
  * <BottomSheet visible={visible} onClose={handleClose}>
  *   <BottomSheet.Header>
  *     <BottomSheet.Title>标题</BottomSheet.Title>
  *   </BottomSheet.Header>
  *   <BottomSheet.Body>
- *     {/* 内容 */}
+ *     {/* 内容 *-/}
  *   </BottomSheet.Body>
  *   <BottomSheet.Footer>
- *     {/* 底部按钮 */}
+ *     {/* 底部按钮 *-/}
  *   </BottomSheet.Footer>
  * </BottomSheet>
  * ```
