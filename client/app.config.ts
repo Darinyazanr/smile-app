@@ -3,7 +3,7 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 const APP_NAME = '今日微笑';
 const BUNDLE_ID = 'com.smileapp.today';
 const VERSION = '1.0.0';
-const BUILD_NUMBER = '1';
+const BUILD_NUMBER = '2';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   return {
@@ -15,7 +15,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     icon: './assets/images/icon.png',
     scheme: 'smileapp',
     userInterfaceStyle: 'automatic',
-    newArchEnabled: true,
+    newArchEnabled: false,
     ios: {
       supportsTablet: true,
       bundleIdentifier: BUNDLE_ID,
