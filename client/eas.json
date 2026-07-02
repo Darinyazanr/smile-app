@@ -20,7 +20,13 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "image": "latest"
+      },
+      "node": "22.13.0",
+      "pnpm": "9.0.0",
+      "hooks": {
+        "preInstall": "bash eas-hooks/pre-install.sh"
       }
     }
   },
