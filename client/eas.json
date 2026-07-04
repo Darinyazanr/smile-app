@@ -22,6 +22,9 @@
       "ios": {
         "resourceClass": "m-medium",
         "image": "latest"
+      },
+      "env": {
+        "NPM_CLI_OPTIONS": "--legacy-peer-deps"
       }
     }
   },
