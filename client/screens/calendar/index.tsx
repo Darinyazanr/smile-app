@@ -10,12 +10,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from 'react-native';
 import { Screen } from '@/components/Screen';
 import { BottomSheet } from '@/components/BottomSheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import dayjs from 'dayjs';
 import { useSmile } from '@/contexts/SmileContext';
 import { SmileRecord } from '@/models/SmileRecord';
@@ -34,13 +35,16 @@ interface DayData {
 export default function CalendarScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { allRecords, todayRecord } = useSmile();
-  
+  const { allRecords, todayRecord, saveRecordForDate, deleteRecord } = useSmile();
+
   // 当前查看的月份
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   // 选中的日期
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
+  // 补卡模式：是否正在补卡
+  const [isMakeupMode, setIsMakeupMode] = useState(false);
+  const [isMakeupSubmitting, setIsMakeupSubmitting] = useState(false);
 
   // 将记录转为 Map 方便查找
   const recordMap = useMemo(() => {
@@ -131,6 +135,7 @@ export default function CalendarScreen() {
     if (dayDate.isAfter(today, 'day')) return;
 
     setSelectedDate(day.date);
+    setIsMakeupMode(false);
     setDetailModalVisible(true);
   }, []);
 
@@ -177,6 +182,38 @@ export default function CalendarScreen() {
     const today = dayjs();
     return !dayDate.isAfter(today, 'day');
   };
+
+  // 补卡提交
+  const handleMakeupSubmit = useCallback(async (smiled: boolean) => {
+    if (!selectedDate || isMakeupSubmitting) return;
+    setIsMakeupSubmitting(true);
+    try {
+      await saveRecordForDate(selectedDate, smiled);
+      setDetailModalVisible(false);
+      setIsMakeupMode(false);
+    } catch (e) {
+      Alert.alert('补卡失败', '请稍后重试');
+    } finally {
+      setIsMakeupSubmitting(false);
+    }
+  }, [selectedDate, isMakeupSubmitting, saveRecordForDate]);
+
+  // 删除记录
+  const handleDeleteRecord = useCallback(async () => {
+    if (!selectedDate) return;
+    try {
+      await deleteRecord(selectedDate);
+      setDetailModalVisible(false);
+    } catch (e) {
+      Alert.alert('删除失败', '请稍后重试');
+    }
+  }, [selectedDate, deleteRecord]);
+
+  // 是否为今天
+  const isToday = useMemo(() => {
+    if (!selectedDate) return false;
+    return dayjs(selectedDate).isSame(dayjs(), 'day');
+  }, [selectedDate]);
 
   // 是否可右滑
   const canGoNext = useMemo(() => {
@@ -314,7 +351,7 @@ export default function CalendarScreen() {
                 <View style={styles.detailMood}>
                   <MoodEmoji type={selectedRecord.smiled ? 'smiled' : 'notSmiled'} style={styles.detailEmoji} />
                   <Text style={styles.detailMoodText}>
-                    {selectedRecord.smiled ? '今天笑了' : '今天没笑'}
+                    {selectedRecord.smiled ? '笑了' : '没笑'}
                   </Text>
                 </View>
 
@@ -328,26 +365,62 @@ export default function CalendarScreen() {
                 {selectedRecord.photoPath && (
                   <View style={styles.detailSection}>
                     <Text style={styles.detailLabel}>记录照片</Text>
-                    <Image 
-                      source={{ uri: selectedRecord.photoPath }} 
+                    <Image
+                      source={{ uri: selectedRecord.photoPath }}
                       style={styles.detailPhoto}
                       resizeMode="cover"
                     />
                   </View>
                 )}
+
+                {/* 删除已有记录 */}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDeleteRecord}
+                >
+                  <Text style={styles.deleteButtonText}>删除此记录</Text>
+                </TouchableOpacity>
               </>
+            ) : isMakeupMode ? (
+              <View className="items-center py-5">
+                <Text style={styles.makeupTitle}>
+                  {isToday ? '今天笑了吗？' : `补卡 · ${dayjs(selectedDate).format('MM月DD日')}`}
+                </Text>
+                <View style={styles.makeupButtons}>
+                  <TouchableOpacity
+                    style={styles.makeupSmileButton}
+                    onPress={() => handleMakeupSubmit(true)}
+                    disabled={isMakeupSubmitting}
+                    activeOpacity={0.7}
+                  >
+                    <MoodEmoji type="smiled" size={40} />
+                    <Text style={styles.makeupButtonLabel}>笑了</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.makeupNotSmileButton}
+                    onPress={() => handleMakeupSubmit(false)}
+                    disabled={isMakeupSubmitting}
+                    activeOpacity={0.7}
+                  >
+                    <MoodEmoji type="notSmiled" size={40} />
+                    <Text style={styles.makeupButtonLabel}>没笑</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={() => setIsMakeupMode(false)}>
+                  <Text className="text-sm text-[#94A3B8]">取消</Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <View style={styles.noRecordContainer}>
                 <Text style={styles.noRecordText}>当天没有打卡记录</Text>
-                <Link 
-                  href="/" 
-                  asChild
-                  onPress={() => setDetailModalVisible(false)}
+                <TouchableOpacity
+                  style={styles.goCheckInButton}
+                  onPress={() => setIsMakeupMode(true)}
                 >
-                  <TouchableOpacity style={styles.goCheckInButton}>
-                    <Text style={styles.goCheckInText}>去打卡</Text>
-                  </TouchableOpacity>
-                </Link>
+                  <Text style={styles.goCheckInText}>
+                    {isToday ? '去打卡' : '去补卡'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
           </BottomSheet.Body>
@@ -542,5 +615,47 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  deleteButton: {
+    marginTop: 20,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    fontSize: 13,
+    color: '#EF4444',
+  },
+  makeupTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 24,
+  },
+  makeupButtons: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 20,
+  },
+  makeupSmileButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  makeupNotSmileButton: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  makeupButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#374151',
+    marginTop: 8,
   },
 });

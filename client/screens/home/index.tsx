@@ -163,31 +163,30 @@ export default function HomeScreen() {
         </View>
 
         {/* Main Check-in Area */}
-        <View className="flex-1 justify-center px-5">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 48, paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
           {isCheckedIn ? (
             <View className="items-center">
-              <Text className="text-[72px] mb-4">
-                <MoodEmoji type={todayRecord!.smiled ? 'smiled' : 'notSmiled'} />
-              </Text>
-              <Text className="text-2xl font-semibold text-[#1F2937] mb-2">今日已打卡</Text>
-              <Text className="text-base text-[#64748B] mb-5">
-                {todayRecord!.smiled ? '今天你笑得很开心！' : '没关系，明天继续加油！'}
-              </Text>
-              {todayRecord!.reason && (
-                <View style={styles.reasonCard}>
-                  <Text className="text-xs text-[#94A3B8] mb-1">记录原因</Text>
-                  <Text className="text-sm text-[#374151]">{todayRecord!.reason}</Text>
+              <View className="flex-row items-center justify-center mb-1">
+                <Text className="text-xl font-semibold text-[#1F2937]">今日已打卡</Text>
+                <TouchableOpacity onPress={() => handleMoodSelect(todayRecord!.smiled)} className="ml-2">
+                  <Text className="text-xs text-[#94A3B8]">修改记录</Text>
+                </TouchableOpacity>
+              </View>
+              <View className="flex-row items-center mb-5">
+                <MoodEmoji type={todayRecord!.smiled ? 'smiled' : 'notSmiled'} size={20} />
+                <Text className="text-sm text-[#64748B] ml-1.5">
+                  {todayRecord!.smiled ? '今天你笑得很开心' : '没关系，明天继续加油'}
+                </Text>
+              </View>
+              {todayRecord!.reason ? (
+                <View className="bg-white rounded-2xl px-5 py-4 w-full mb-4" style={styles.cardShadow}>
+                  <Text className="text-xs text-[#94A3B8] mb-1.5">记录原因</Text>
+                  <Text className="text-sm text-[#374151] leading-5">{todayRecord!.reason}</Text>
                 </View>
-              )}
-              {todayRecord!.photoPath && (
+              ) : null}
+              {todayRecord!.photoPath ? (
                 <Image source={{ uri: todayRecord!.photoPath }} style={styles.recordPhoto} />
-              )}
-              <TouchableOpacity
-                style={styles.changeButton}
-                onPress={() => handleMoodSelect(todayRecord!.smiled)}
-              >
-                <Text className="text-sm text-[#64748B]">修改记录</Text>
-              </TouchableOpacity>
+              ) : null}
             </View>
           ) : (
             <View className="items-center">
@@ -212,7 +211,7 @@ export default function HomeScreen() {
               </View>
             </View>
           )}
-        </View>
+        </ScrollView>
 
         {/* Bottom Navigation */}
         <View 
@@ -363,15 +362,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#E5E7EB',
     marginHorizontal: 10,
   },
-  reasonCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    width: '100%',
-    marginBottom: 12,
+  cardShadow: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
   },
@@ -380,13 +374,6 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 16,
     marginBottom: 16,
-  },
-  changeButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
   },
   smiledButton: {
     width: 140,

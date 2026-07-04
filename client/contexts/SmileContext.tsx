@@ -20,6 +20,7 @@ interface SmileContextType {
   
   // 操作方法
   saveRecord: (smiled: boolean, reason?: string, photoUri?: string) => Promise<void>;
+  saveRecordForDate: (date: string, smiled: boolean, reason?: string, photoUri?: string) => Promise<void>;
   deleteRecord: (date: string) => Promise<void>;
   updateNotificationSettings: (settings: Partial<NotificationSettings>) => Promise<void>;
   refreshData: () => void;
@@ -99,6 +100,19 @@ export function SmileProvider({ children }: SmileProviderProps) {
   }, [refreshData]);
 
   /**
+   * 补卡：为指定日期保存打卡记录
+   */
+  const saveRecordForDate = useCallback(async (
+    date: string,
+    smiled: boolean,
+    reason?: string,
+    photoUri?: string
+  ) => {
+    await storageService.saveRecord(date, smiled, reason, photoUri);
+    refreshData();
+  }, [refreshData]);
+
+  /**
    * 删除打卡记录
    */
   const deleteRecord = useCallback(async (date: string) => {
@@ -133,6 +147,7 @@ export function SmileProvider({ children }: SmileProviderProps) {
     isLoading,
     error,
     saveRecord,
+    saveRecordForDate,
     deleteRecord,
     updateNotificationSettings,
     refreshData,

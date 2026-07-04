@@ -148,14 +148,15 @@ class StorageService {
    */
   async saveRecord(date: string, smiled: boolean, reason?: string, photoUri?: string): Promise<SmileRecord> {
     let photoPath: string | undefined;
-
-    if (photoUri && Platform.OS !== 'web') {
-      photoPath = await this.savePhoto(photoUri);
-    }
-
-    // 如果是更新已有记录且新记录没有照片，保留旧照片
     const existing = this.recordsCache.get(date);
-    if (!photoPath && existing?.photoPath) {
+
+    // 如果照片路径没变（修改记录时未换照片），直接复用已有路径，避免重复 copyAsync 失败
+    if (photoUri && existing?.photoPath === photoUri) {
+      photoPath = existing.photoPath;
+    } else if (photoUri && Platform.OS !== 'web') {
+      photoPath = await this.savePhoto(photoUri);
+    } else if (!photoPath && existing?.photoPath) {
+      // 没有新照片时保留旧照片
       photoPath = existing.photoPath;
     }
 

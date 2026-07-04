@@ -19,7 +19,7 @@ import { useSmile } from '@/contexts/SmileContext';
 import { SmileRecord } from '@/models/SmileRecord';
 import dayjs from 'dayjs';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
+const WEEKDAY_CN = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 
 type Period = 'week' | 'month';
 
@@ -55,7 +55,7 @@ export default function StatsScreen() {
       const record = recordMap.get(dateStr);
       return {
         date: dateStr,
-        label: date.format(period === 'week' ? 'dddd' : 'MM/DD'),
+        label: period === 'week' ? WEEKDAY_CN[date.day()] : date.format('MM/DD'),
         smiled: record ? record.smiled : null,
       };
     });
