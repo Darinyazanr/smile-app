@@ -4,7 +4,9 @@
   "main": "expo-router/entry",
   "private": true,
   "scripts": {
-    "start": "expo start --web --clear"
+    "start": "expo start --web --clear",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
@@ -93,5 +95,6 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
     "uniwind": "^1.2.7"
-  }
+  },
+  "version": "1.0.0"
 }

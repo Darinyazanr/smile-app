@@ -8,6 +8,7 @@
  */
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { useRouter as useExpoRouter, useSegments } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSupabaseBrowserClientWithRetry } from '@/lib/supabase-browser';
 
 /**
@@ -53,7 +54,7 @@ interface AuthContextType {
   signUp: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   signOut: () => Promise<void>;
   /** 手动进入游客模式 */
-  enterGuestMode: () => void;
+  enterGuestMode: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -211,9 +212,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = useCallback(async () => {
     // 清除游客状态
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('smile_guest_mode');
-    }
+    await AsyncStorage.removeItem('smile_guest_mode');
     
     if (isGuestMode) {
       setIsGuestMode(false);
@@ -232,30 +231,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [routerReplace, isGuestMode]);
 
-  const enterGuestMode = useCallback(() => {
+  const enterGuestMode = useCallback(async () => {
     setIsGuestMode(true);
     setUser({
       id: 'guest_' + Date.now(),
       email: '游客',
     });
     setIsLoading(false);
-    // 持久化游客状态到 localStorage，避免刷新/导航后丢失
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('smile_guest_mode', '1');
-    }
+    // 持久化游客状态，避免刷新/导航后丢失
+    await AsyncStorage.setItem('smile_guest_mode', '1');
   }, []);
 
-  // 初始化时检查 localStorage 中的游客状态
+  // 初始化时检查 AsyncStorage 中的游客状态
   useEffect(() => {
-    if (typeof window !== 'undefined' && localStorage.getItem('smile_guest_mode') === '1') {
-      setIsGuestMode(true);
-      setUser({
-        id: 'guest_persist',
-        email: '游客',
-      });
-      setIsLoading(false);
-      setSupabaseAvailable(false);
-    }
+    AsyncStorage.getItem('smile_guest_mode').then((value) => {
+      if (value === '1') {
+        setIsGuestMode(true);
+        setUser({
+          id: 'guest_persist',
+          email: '游客',
+        });
+        setIsLoading(false);
+        setSupabaseAvailable(false);
+      }
+    });
   }, []);
 
   return (
