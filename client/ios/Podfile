@@ -2,6 +2,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
 require 'json'
+require 'fileutils'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
 def ccache_enabled?(podfile_properties)
@@ -70,16 +71,18 @@ target 'app' do
       end
     end
 
-    # Create stub headers for individual *ComponentDescriptor.h files.
-    # OldArch codegen generates ComponentDescriptors.h (plural) but the Pods project
-    # may reference per-component *ComponentDescriptor.h (singular) for NewArch.
-    build_dir = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
-    Dir.glob("#{build_dir}/react/renderer/components/*/ComponentDescriptors.h").each do |general|
+    # OldArch codegen doesn't generate per-component C++ descriptor headers under
+    # common/cpp/. Create stub files so the ReactCodegen pod can still build.
+    generated_dir = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
+    Dir.glob("#{generated_dir}/react/renderer/components/*/ComponentDescriptors.h").each do |general|
       dir = File.dirname(general)
       component = File.basename(dir)
-      individual = File.join(dir, "#{component}ComponentDescriptor.h")
-      unless File.exist?(individual)
-        File.write(individual, "// Stub: includes the generated ComponentDescriptors.h (plural)\n#include \"ComponentDescriptors.h\"\n")
+      # Create stub in common/cpp/ path (where Pods project expects NewArch headers)
+      stub_dir = File.join(generated_dir, 'common', 'cpp', 'react', 'renderer', 'components', component)
+      FileUtils.mkdir_p(stub_dir)
+      stub_file = File.join(stub_dir, "#{component}ComponentDescriptor.h")
+      unless File.exist?(stub_file)
+        File.write(stub_file, "// OldArch stub\n#include \"react/renderer/components/#{component}/ComponentDescriptors.h\"\n")
       end
     end
   end
