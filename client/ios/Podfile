@@ -69,5 +69,18 @@ target 'app' do
         end
       end
     end
+
+    # Create stub headers for individual *ComponentDescriptor.h files.
+    # OldArch codegen generates ComponentDescriptors.h (plural) but the Pods project
+    # may reference per-component *ComponentDescriptor.h (singular) for NewArch.
+    build_dir = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
+    Dir.glob("#{build_dir}/react/renderer/components/*/ComponentDescriptors.h").each do |general|
+      dir = File.dirname(general)
+      component = File.basename(dir)
+      individual = File.join(dir, "#{component}ComponentDescriptor.h")
+      unless File.exist?(individual)
+        File.write(individual, "// Stub: includes the generated ComponentDescriptors.h (plural)\n#include \"ComponentDescriptors.h\"\n")
+      end
+    end
   end
 end
