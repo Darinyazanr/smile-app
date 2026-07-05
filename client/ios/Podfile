@@ -2,7 +2,6 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
 require 'json'
-require 'fileutils'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
 def ccache_enabled?(podfile_properties)
@@ -71,19 +70,5 @@ target 'app' do
       end
     end
 
-    # OldArch: create stub headers for NewArch C++ component descriptors
-    # The Pods project may reference common/cpp/.../*ComponentDescriptor.h files
-    # that Codegen doesn't generate in OldArch mode.
-    gen = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
-    comp = File.join(gen, 'react', 'renderer', 'components')
-    if Dir.exist?(comp)
-      Dir.entries(comp).each do |name|
-        next if name.start_with?('.')
-        stub_dir = File.join(gen, 'common', 'cpp', 'react', 'renderer', 'components', name)
-        FileUtils.mkdir_p(stub_dir)
-        stub = File.join(stub_dir, "#{name}ComponentDescriptor.h")
-        File.write(stub, "// OldArch stub\n") unless File.exist?(stub)
-      end
-    end
   end
 end
