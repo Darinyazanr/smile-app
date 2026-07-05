@@ -2,6 +2,7 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
 require 'json'
+require 'fileutils'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
 def ccache_enabled?(podfile_properties)
@@ -70,26 +71,16 @@ target 'app' do
       end
     end
 
-    # OldArch: Codegen generates ComponentDescriptors.h (plural) but some
-    # generated files reference *ComponentDescriptor.h (singular).
-    # Create singular stubs alongside the real plural files.
+    # OldArch: Codegen generates ComponentDescriptors.h (plural) but
+    # the pbxproj references per-component *ComponentDescriptor.h (singular).
+    # Create stubs unconditionally — no filesystem checks, no Dir.glob.
     gen = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
-    comp = File.join(gen, 'react', 'renderer', 'components')
-    created = 0
-    if Dir.exist?(comp)
-      Dir.entries(comp).each do |component|
-        next if component.start_with?('.')
-        dir = File.join(comp, component)
-        next unless File.directory?(dir)
-        plural = File.join(dir, 'ComponentDescriptors.h')
-        singular = File.join(dir, "#{component}ComponentDescriptor.h")
-        if File.exist?(plural) && !File.exist?(singular)
-          File.write(singular, "// OldArch stub\n#include \"ComponentDescriptors.h\"\n")
-          created += 1
-        end
-      end
+    %w[RNCSlider RNDateTimePickerCGen rngesturehandler_codegen rnpicker
+       rnscreens rnsvg RNCWebViewSpec safeareacontext].each do |name|
+      dir = File.join(gen, 'react', 'renderer', 'components', name)
+      FileUtils.mkdir_p(dir)
+      File.write(File.join(dir, "#{name}ComponentDescriptor.h"), "// stub\n")
     end
-    puts "[Podfile post_install] Created #{created} ComponentDescriptor stubs in #{comp}"
 
   end
 end
