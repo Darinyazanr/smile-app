@@ -21,7 +21,7 @@
       "autoIncrement": true,
       "ios": {
         "resourceClass": "m-medium",
-        "image": "latest"
+        "image": "macos-15-xcode-26.3"
       },
       "env": {
         "NPM_CLI_OPTIONS": "--legacy-peer-deps"
