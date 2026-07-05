@@ -71,18 +71,18 @@ target 'app' do
       end
     end
 
-    # OldArch codegen doesn't generate per-component C++ descriptor headers under
-    # common/cpp/. Create stub files so the ReactCodegen pod can still build.
-    generated_dir = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
-    Dir.glob("#{generated_dir}/react/renderer/components/*/ComponentDescriptors.h").each do |general|
-      dir = File.dirname(general)
-      component = File.basename(dir)
-      # Create stub in common/cpp/ path (where Pods project expects NewArch headers)
-      stub_dir = File.join(generated_dir, 'common', 'cpp', 'react', 'renderer', 'components', component)
-      FileUtils.mkdir_p(stub_dir)
-      stub_file = File.join(stub_dir, "#{component}ComponentDescriptor.h")
-      unless File.exist?(stub_file)
-        File.write(stub_file, "// OldArch stub\n#include \"react/renderer/components/#{component}/ComponentDescriptors.h\"\n")
+    # OldArch: create stub headers for NewArch C++ component descriptors
+    # The Pods project may reference common/cpp/.../*ComponentDescriptor.h files
+    # that Codegen doesn't generate in OldArch mode.
+    gen = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
+    comp = File.join(gen, 'react', 'renderer', 'components')
+    if Dir.exist?(comp)
+      Dir.entries(comp).each do |name|
+        next if name.start_with?('.')
+        stub_dir = File.join(gen, 'common', 'cpp', 'react', 'renderer', 'components', name)
+        FileUtils.mkdir_p(stub_dir)
+        stub = File.join(stub_dir, "#{name}ComponentDescriptor.h")
+        File.write(stub, "// OldArch stub\n") unless File.exist?(stub)
       end
     end
   end
