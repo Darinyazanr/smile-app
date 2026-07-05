@@ -71,15 +71,19 @@ target 'app' do
       end
     end
 
-    # OldArch: Codegen generates ComponentDescriptors.h (plural) but
-    # the pbxproj references per-component *ComponentDescriptor.h (singular).
-    # Create stubs unconditionally — no filesystem checks, no Dir.glob.
+    # OldArch: the ReactCodegen pod's pbxproj references per-component
+    # *ComponentDescriptor.h (singular) at both possible paths. Create
+    # all of them unconditionally.
     gen = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
     %w[RNCSlider RNDateTimePickerCGen rngesturehandler_codegen rnpicker
        rnscreens rnsvg RNCWebViewSpec safeareacontext].each do |name|
-      dir = File.join(gen, 'react', 'renderer', 'components', name)
-      FileUtils.mkdir_p(dir)
-      File.write(File.join(dir, "#{name}ComponentDescriptor.h"), "// stub\n")
+      # Path 1: react/renderer/components (for header search path includes)
+      # Path 2: common/cpp/react/renderer/components (for pbxproj file refs)
+      [['react/renderer/components'], ['common', 'cpp', 'react', 'renderer', 'components']].each do |base|
+        dir = File.join(gen, *base, name)
+        FileUtils.mkdir_p(dir)
+        File.write(File.join(dir, "#{name}ComponentDescriptor.h"), "// stub\n")
+      end
     end
 
   end
