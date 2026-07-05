@@ -70,18 +70,26 @@ target 'app' do
       end
     end
 
-    # OldArch: Codegen generates ComponentDescriptors.h (plural) but the
-    # EAS pbxproj may reference *ComponentDescriptor.h (singular) per-component.
-    # Create stub singular headers alongside the real plural ones.
+    # OldArch: Codegen generates ComponentDescriptors.h (plural) but some
+    # generated files reference *ComponentDescriptor.h (singular).
+    # Create singular stubs alongside the real plural files.
     gen = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
-    Dir.glob(gen + '/react/renderer/components/*/ComponentDescriptors.h').each do |plural_path|
-      dir = File.dirname(plural_path)
-      component = File.basename(dir)
-      singular_path = File.join(dir, "#{component}ComponentDescriptor.h")
-      unless File.exist?(singular_path)
-        File.write(singular_path, "// OldArch stub: see ComponentDescriptors.h\n#include \"ComponentDescriptors.h\"\n")
+    comp = File.join(gen, 'react', 'renderer', 'components')
+    created = 0
+    if Dir.exist?(comp)
+      Dir.entries(comp).each do |component|
+        next if component.start_with?('.')
+        dir = File.join(comp, component)
+        next unless File.directory?(dir)
+        plural = File.join(dir, 'ComponentDescriptors.h')
+        singular = File.join(dir, "#{component}ComponentDescriptor.h")
+        if File.exist?(plural) && !File.exist?(singular)
+          File.write(singular, "// OldArch stub\n#include \"ComponentDescriptors.h\"\n")
+          created += 1
+        end
       end
     end
+    puts "[Podfile post_install] Created #{created} ComponentDescriptor stubs in #{comp}"
 
   end
 end
