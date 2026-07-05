@@ -70,5 +70,18 @@ target 'app' do
       end
     end
 
+    # OldArch: Codegen generates ComponentDescriptors.h (plural) but the
+    # EAS pbxproj may reference *ComponentDescriptor.h (singular) per-component.
+    # Create stub singular headers alongside the real plural ones.
+    gen = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
+    Dir.glob(gen + '/react/renderer/components/*/ComponentDescriptors.h').each do |plural_path|
+      dir = File.dirname(plural_path)
+      component = File.basename(dir)
+      singular_path = File.join(dir, "#{component}ComponentDescriptor.h")
+      unless File.exist?(singular_path)
+        File.write(singular_path, "// OldArch stub: see ComponentDescriptors.h\n#include \"ComponentDescriptors.h\"\n")
+      end
+    end
+
   end
 end
