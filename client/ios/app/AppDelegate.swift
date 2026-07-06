@@ -64,26 +64,7 @@ class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
 #if DEBUG
     return RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: ".expo/.virtual-metro-entry")
 #else
-    // Try standard bundle path first
-    if let url = Bundle.main.url(forResource: "main", withExtension: "jsbundle") {
-      return url
-    }
-    // Fallback: search for any .jsbundle file in the bundle
-    if let bundlePath = Bundle.main.path(forResource: "main", ofType: "jsbundle") {
-      return URL(fileURLWithPath: bundlePath)
-    }
-    // Last resort: search all bundle resources
-    if let resourceURL = Bundle.main.resourceURL {
-      let enumerator = FileManager.default.enumerator(at: resourceURL, includingPropertiesForKeys: nil)
-      while let fileURL = enumerator?.nextObject() as? URL {
-        if fileURL.pathExtension == "jsbundle" {
-          return fileURL
-        }
-      }
-    }
-    // If still nil, return nil and let React Native handle the error
-    NSLog("[AppDelegate] CRITICAL: Could not find main.jsbundle in app bundle")
-    return nil
+    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
   }
 }
