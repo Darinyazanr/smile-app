@@ -2,13 +2,12 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")
 
 require 'json'
-require 'fileutils'
 podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties.json'))) rescue {}
 
 def ccache_enabled?(podfile_properties)
   # Environment variable takes precedence
   return ENV['USE_CCACHE'] == '1' if ENV['USE_CCACHE']
-  
+
   # Fall back to Podfile properties
   podfile_properties['apple.ccacheEnabled'] == 'true'
 end
@@ -60,31 +59,5 @@ target 'app' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
-
-    # Workaround: fmt 11.0.2 uses C++20 consteval which Xcode 26.4 clang rejects.
-    # Downgrade fmt pod to C++17 to avoid the compiler error.
-    installer.pods_project.targets.each do |target|
-      target.build_configurations.each do |config|
-        if target.name == 'fmt'
-          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
-        end
-      end
-    end
-
-    # OldArch: exclude Fabric *ComponentView.mm from third-party pods.
-    # They import *ComponentDescriptor.h headers that Codegen only generates
-    # with newArchEnabled=true. Built-in React RCT* files are fine.
-    pbx = File.join(installer.sandbox.root, 'Pods.xcodeproj', 'project.pbxproj')
-    if File.exist?(pbx)
-      content = File.read(pbx)
-      re = /^\t+(\h{16,}) \/\* (RN[A-Z].+?ComponentView\.[a-z]+) in Sources \*\/ =/
-      uuids = content.scan(re).map { |m| m[0] }
-      uuids.each do |uuid|
-        content.gsub!(/^\t+#{uuid} \/\* .+? \*\/ = \{isa = PBXBuildFile; fileRef = \h{16,} \/\* .+? \*\/;.*?\};\n/, '')
-        content.gsub!(/^\t+#{uuid} \/\* .+? in Sources \*\/,?\n/, '')
-      end
-      File.write(pbx, content)
-    end
-
   end
 end
