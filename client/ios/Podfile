@@ -71,19 +71,19 @@ target 'app' do
       end
     end
 
-    # OldArch: the ReactCodegen pod's pbxproj references per-component
-    # *ComponentDescriptor.h (singular) at both possible paths. Create
-    # all of them unconditionally.
-    gen = File.join(installer.sandbox.root, '..', 'build', 'generated', 'ios')
-    %w[RNCSlider RNDateTimePickerCGen rngesturehandler_codegen rnpicker
-       rnscreens rnsvg RNCWebViewSpec safeareacontext].each do |name|
-      # Path 1: react/renderer/components (for header search path includes)
-      # Path 2: common/cpp/react/renderer/components (for pbxproj file refs)
-      [['react/renderer/components'], ['common', 'cpp', 'react', 'renderer', 'components']].each do |base|
-        dir = File.join(gen, *base, name)
-        FileUtils.mkdir_p(dir)
-        File.write(File.join(dir, "#{name}ComponentDescriptor.h"), "// stub\n")
+    # OldArch: exclude Fabric *ComponentView.mm from third-party pods.
+    # They import *ComponentDescriptor.h headers that Codegen only generates
+    # with newArchEnabled=true. Built-in React RCT* files are fine.
+    pbx = File.join(installer.sandbox.root, 'Pods.xcodeproj', 'project.pbxproj')
+    if File.exist?(pbx)
+      content = File.read(pbx)
+      re = /^\t+(\h{16,}) \/\* (RN[A-Z].+?ComponentView\.[a-z]+) in Sources \*\/ =/
+      uuids = content.scan(re).map { |m| m[0] }
+      uuids.each do |uuid|
+        content.gsub!(/^\t+#{uuid} \/\* .+? \*\/ = \{isa = PBXBuildFile; fileRef = \h{16,} \/\* .+? \*\/;.*?\};\n/, '')
+        content.gsub!(/^\t+#{uuid} \/\* .+? in Sources \*\/,?\n/, '')
       end
+      File.write(pbx, content)
     end
 
   end
